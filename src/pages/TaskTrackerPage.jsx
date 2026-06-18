@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import Sidebar from '../components/layout/Sidebar'
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -284,7 +284,6 @@ function TaskForm({ form, setForm, editingTask, onToggleExcludedDay, onSubmit, o
 
 function TaskTrackerPage() {
   const { user } = useAuth()
-  const navigate = useNavigate()
 
   const [view, setView] = useState('daily')
   const [tasks, setTasks] = useState([])
@@ -407,11 +406,6 @@ function TaskTrackerPage() {
     }
   }
 
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    navigate('/login')
-  }
-
   function openCreateForm() {
     setEditingTask(null)
     setForm(DEFAULT_FORM)
@@ -481,9 +475,12 @@ function TaskTrackerPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-gray-900" />
-      </div>
+      <>
+        <Sidebar />
+        <div className="ml-[220px] min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-gray-900" />
+        </div>
+      </>
     )
   }
 
@@ -496,171 +493,162 @@ function TaskTrackerPage() {
   const progressPct = visibleTasks.length ? (doneCount / visibleTasks.length) * 100 : 0
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <span className="text-xl font-bold text-gray-900">Levelpath</span>
+    <>
+      <Sidebar />
+      <div className="ml-[220px] min-h-screen bg-gray-50">
+        <nav className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-center">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setView('daily')}
+              className={
+                view === 'daily'
+                  ? 'text-sm font-medium px-4 py-2 rounded-md bg-gray-900 text-white'
+                  : 'text-sm font-medium px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50'
+              }
+            >
+              Today's Tasks
+            </button>
+            <button
+              onClick={() => setView('manage')}
+              className={
+                view === 'manage'
+                  ? 'text-sm font-medium px-4 py-2 rounded-md bg-gray-900 text-white'
+                  : 'text-sm font-medium px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50'
+              }
+            >
+              All Tasks
+            </button>
+          </div>
+        </nav>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setView('daily')}
-            className={
-              view === 'daily'
-                ? 'text-sm font-medium px-4 py-2 rounded-md bg-gray-900 text-white'
-                : 'text-sm font-medium px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50'
-            }
-          >
-            Today's Tasks
-          </button>
-          <button
-            onClick={() => setView('manage')}
-            className={
-              view === 'manage'
-                ? 'text-sm font-medium px-4 py-2 rounded-md bg-gray-900 text-white'
-                : 'text-sm font-medium px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50'
-            }
-          >
-            All Tasks
-          </button>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-600">{user?.email}</span>
-          <button
-            onClick={handleLogout}
-            className="bg-red-600 text-white text-sm px-4 py-2 rounded hover:bg-red-700"
-          >
-            Log out
-          </button>
-        </div>
-      </nav>
-
-      <main className="max-w-4xl mx-auto px-6 py-8">
-        {view === 'daily' && (
-          <div>
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">Today's Tasks</h1>
-              <p className="text-gray-500 mt-1">{formatTodayLong()}</p>
-
-              {tasks.length > 0 && (
-                <>
-                  <p className="text-sm text-gray-600 mt-3">
-                    {doneCount} of {visibleTasks.length} tasks done today
+        <main className="max-w-4xl mx-auto px-6 py-8">
+          {view === 'daily' && (
+            <div>
+              <div className="mb-6">
+                <h1 className="text-2xl font-bold text-gray-900">Today's Tasks</h1>
+                <p className="text-gray-500 mt-1">{formatTodayLong()}</p>
+  
+                {tasks.length > 0 && (
+                  <>
+                    <p className="text-sm text-gray-600 mt-3">
+                      {doneCount} of {visibleTasks.length} tasks done today
+                    </p>
+                    <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mt-2">
+                      <div
+                        className="h-full bg-gray-900 rounded-full transition-all"
+                        style={{ width: `${progressPct}%` }}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+  
+              {tasks.length === 0 ? (
+                <div className="text-center py-16">
+                  <p className="text-gray-400 text-sm">
+                    No tasks yet. Click 'All Tasks' to create your first task.
                   </p>
-                  <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mt-2">
-                    <div
-                      className="h-full bg-gray-900 rounded-full transition-all"
-                      style={{ width: `${progressPct}%` }}
+                </div>
+              ) : visibleTasks.length === 0 ? (
+                <div className="text-center py-16">
+                  <p className="text-gray-400 text-sm">Nothing scheduled for today.</p>
+                </div>
+              ) : (
+                <div>
+                  {visibleTasks.map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      status={getLogForTask(task.id)?.status ?? 'pending'}
+                      streak={getStreakForTask(task.id)?.current_streak ?? 0}
+                      onMark={(status) => handleMark(task, status)}
                     />
+                  ))}
+                </div>
+              )}
+  
+              {visibleTasks.length > 0 && (
+                <div className="mt-8">
+                  <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
+                    Daily Progress
+                  </h2>
+                  <div className="flex gap-3">
+                    <span className="text-sm font-medium px-3 py-1.5 rounded-full bg-green-100 text-green-700">
+                      {doneCount} completed
+                    </span>
+                    <span className="text-sm font-medium px-3 py-1.5 rounded-full bg-red-100 text-red-700">
+                      {notDoneCount} not done
+                    </span>
+                    <span className="text-sm font-medium px-3 py-1.5 rounded-full bg-gray-100 text-gray-600">
+                      {pendingCount} pending
+                    </span>
                   </div>
-                </>
+                </div>
               )}
             </div>
-
-            {tasks.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-gray-400 text-sm">
-                  No tasks yet. Click 'All Tasks' to create your first task.
-                </p>
+          )}
+  
+          {view === 'manage' && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h1 className="text-2xl font-bold text-gray-900">All Tasks</h1>
+                <button
+                  onClick={openCreateForm}
+                  className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-gray-800"
+                >
+                  New Task
+                </button>
               </div>
-            ) : visibleTasks.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-gray-400 text-sm">Nothing scheduled for today.</p>
-              </div>
-            ) : (
-              <div>
-                {visibleTasks.map((task) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    status={getLogForTask(task.id)?.status ?? 'pending'}
-                    streak={getStreakForTask(task.id)?.current_streak ?? 0}
-                    onMark={(status) => handleMark(task, status)}
-                  />
+  
+              {showCreateForm && (
+                <TaskForm
+                  form={form}
+                  setForm={setForm}
+                  editingTask={editingTask}
+                  onToggleExcludedDay={toggleExcludedDay}
+                  onSubmit={handleSaveTask}
+                  onCancel={closeForm}
+                />
+              )}
+  
+              <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">
+                {tasks.map((task) => (
+                  <div key={task.id} className="flex items-center justify-between gap-4 px-4 py-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <p className="font-medium text-gray-900 truncate">{task.name}</p>
+                      <PriorityBadge priority={task.priority} />
+                      <span className="text-xs text-gray-500">
+                        {task.schedule_type === 'goal' ? 'Goal-based' : 'Daily'}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {new Date(task.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => openEditForm(task)}
+                        className="text-sm font-medium text-gray-600 hover:text-gray-900 px-2 py-1"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTask(task.id)}
+                        className="text-sm font-medium text-red-600 hover:text-red-700 px-2 py-1"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
                 ))}
+                {tasks.length === 0 && (
+                  <p className="text-sm text-gray-400 px-4 py-6 text-center">No tasks yet.</p>
+                )}
               </div>
-            )}
-
-            {visibleTasks.length > 0 && (
-              <div className="mt-8">
-                <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
-                  Daily Progress
-                </h2>
-                <div className="flex gap-3">
-                  <span className="text-sm font-medium px-3 py-1.5 rounded-full bg-green-100 text-green-700">
-                    {doneCount} completed
-                  </span>
-                  <span className="text-sm font-medium px-3 py-1.5 rounded-full bg-red-100 text-red-700">
-                    {notDoneCount} not done
-                  </span>
-                  <span className="text-sm font-medium px-3 py-1.5 rounded-full bg-gray-100 text-gray-600">
-                    {pendingCount} pending
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {view === 'manage' && (
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">All Tasks</h1>
-              <button
-                onClick={openCreateForm}
-                className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-gray-800"
-              >
-                New Task
-              </button>
             </div>
-
-            {showCreateForm && (
-              <TaskForm
-                form={form}
-                setForm={setForm}
-                editingTask={editingTask}
-                onToggleExcludedDay={toggleExcludedDay}
-                onSubmit={handleSaveTask}
-                onCancel={closeForm}
-              />
-            )}
-
-            <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">
-              {tasks.map((task) => (
-                <div key={task.id} className="flex items-center justify-between gap-4 px-4 py-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">{task.name}</p>
-                    <PriorityBadge priority={task.priority} />
-                    <span className="text-xs text-gray-500">
-                      {task.schedule_type === 'goal' ? 'Goal-based' : 'Daily'}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {new Date(task.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={() => openEditForm(task)}
-                      className="text-sm font-medium text-gray-600 hover:text-gray-900 px-2 py-1"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteTask(task.id)}
-                      className="text-sm font-medium text-red-600 hover:text-red-700 px-2 py-1"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
-              {tasks.length === 0 && (
-                <p className="text-sm text-gray-400 px-4 py-6 text-center">No tasks yet.</p>
-              )}
-            </div>
-          </div>
-        )}
-      </main>
-    </div>
+          )}
+        </main>
+      </div>
+    </>
   )
 }
 

@@ -1,23 +1,12 @@
-import { useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import Sidebar from '../components/layout/Sidebar'
 
 function DashboardPage() {
-  const navigate = useNavigate()
-
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    navigate('/login')
-  }
-
   return (
-    <div>
-      <h1>Dashboard</h1>
-      <button
-        onClick={handleLogout}
-        className="bg-red-600 text-white px-4 py-2 rounded"
-      >
-        Log out
-      </button>
+    <div className="min-h-screen bg-gray-50">
+      <Sidebar />
+      <main className="ml-[220px] p-6">
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+      </main>
     </div>
   )
 }

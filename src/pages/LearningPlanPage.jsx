@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import Sidebar from '../components/layout/Sidebar'
 
 const PHASE_NAMES = {
   1: 'Phase 1 — AI Basics',
@@ -173,7 +173,6 @@ function TopicDetail({ topic, isCompleted, onToggleComplete }) {
 
 function LearningPlanPage() {
   const { user } = useAuth()
-  const navigate = useNavigate()
   const [topics, setTopics] = useState([])
   const [completedTopicIds, setCompletedTopicIds] = useState(new Set())
   const [loading, setLoading] = useState(true)
@@ -218,11 +217,6 @@ function LearningPlanPage() {
     })
   }
 
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    navigate('/login')
-  }
-
   async function handleToggleComplete(topicId) {
     const isCompleted = completedTopicIds.has(String(topicId))
 
@@ -245,9 +239,12 @@ function LearningPlanPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-gray-900" />
-      </div>
+      <>
+        <Sidebar />
+        <div className="ml-[220px] h-screen bg-gray-50 flex items-center justify-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-gray-900" />
+        </div>
+      </>
     )
   }
 
@@ -256,21 +253,9 @@ function LearningPlanPage() {
   const selectedTopic = topics.find((t) => t.id === selectedTopicId) ?? null
 
   return (
-    <div className="h-screen flex flex-col">
-      <nav className="flex-shrink-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <span className="text-xl font-bold text-gray-900">Levelpath</span>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-600">{user?.email}</span>
-          <button
-            onClick={handleLogout}
-            className="bg-red-600 text-white text-sm px-4 py-2 rounded hover:bg-red-700"
-          >
-            Log out
-          </button>
-        </div>
-      </nav>
-
-      <div className="flex flex-1 overflow-hidden">
+    <>
+      <Sidebar />
+      <div className="ml-[220px] h-screen flex overflow-hidden">
         <aside className="w-[300px] flex-shrink-0 bg-white border-r border-gray-200 overflow-y-auto">
           <div className="p-4 border-b border-gray-200">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
@@ -337,7 +322,7 @@ function LearningPlanPage() {
           />
         </main>
       </div>
-    </div>
+    </>
   )
 }
 
