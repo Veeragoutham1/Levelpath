@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/layout/ProtectedRoute'
+import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import LearningPlanPage from './pages/LearningPlanPage'
@@ -15,7 +16,11 @@ function HomeRedirect() {
     return <div>Loading...</div>
   }
 
-  return <Navigate to={user ? '/dashboard' : '/login'} replace />
+  if (user) {
+    return <Navigate to="/dashboard" replace />
+  }
+
+  return <LandingPage />
 }
 
 function AppRoutes() {
