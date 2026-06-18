@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
@@ -12,6 +13,20 @@ function Sidebar() {
   const { user } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    if (!user) return
+
+    async function checkAdmin() {
+      const { data } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+      if (data?.role === 'admin') {
+        setIsAdmin(true)
+      }
+    }
+
+    checkAdmin()
+  }, [user])
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -48,6 +63,23 @@ function Sidebar() {
             </Link>
           )
         })}
+
+        {isAdmin && (
+          <>
+            <div className="border-t border-gray-100 my-2" />
+            <Link
+              to="/admin"
+              className={
+                location.pathname === '/admin'
+                  ? 'flex items-center gap-3 py-2 px-4 rounded-r-md w-full cursor-pointer bg-blue-50 text-blue-600 border-l-2 border-blue-600'
+                  : 'flex items-center gap-3 py-2 px-4 rounded-r-md w-full cursor-pointer text-gray-600 border-l-2 border-transparent hover:bg-gray-50'
+              }
+            >
+              <i className="ti ti-shield text-lg" />
+              <span className="text-sm font-medium">Admin</span>
+            </Link>
+          </>
+        )}
       </nav>
 
       <div className="px-4 py-4 border-t border-gray-200">
