@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import Sidebar from '../components/layout/Sidebar'
+import TopBar from '../components/layout/TopBar'
 
 const PHASE_NAMES = {
   1: 'Phase 1 — AI Basics',
@@ -12,22 +13,6 @@ const PHASE_NAMES = {
 
 function getTodayString() {
   return new Date().toISOString().split('T')[0]
-}
-
-function getGreeting() {
-  const hour = new Date().getHours()
-  if (hour >= 5 && hour < 12) return 'Good morning'
-  if (hour >= 12 && hour < 18) return 'Good afternoon'
-  return 'Good evening'
-}
-
-function formatTodayLong() {
-  return new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  })
 }
 
 function getPhaseColorClasses(phase) {
@@ -86,7 +71,6 @@ function DashboardPage() {
   const [tasks, setTasks] = useState([])
   const [logs7d, setLogs7d] = useState([])
   const [streaks, setStreaks] = useState([])
-  const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -100,14 +84,12 @@ function DashboardPage() {
         setTasks(result.tasks)
         setLogs7d(result.logs7d)
         setStreaks(result.streaks)
-        setProfile(result.profile)
       } catch {
         setTopics([])
         setCompletedTopicIds(new Set())
         setTasks([])
         setLogs7d([])
         setStreaks([])
-        setProfile(null)
       }
       setLoading(false)
     }
@@ -192,191 +174,184 @@ function DashboardPage() {
   return (
     <>
       <Sidebar />
-      <div className="ml-[220px] min-h-screen bg-gray-50 px-8 py-6">
-        <div className="flex items-start justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {getGreeting()}, {profile?.full_name || user?.email}
-            </h1>
-            <p className="text-gray-500 mt-1">{formatTodayLong()}</p>
+      <div className="ml-[220px] min-h-screen bg-gray-50">
+        <TopBar title="Dashboard" />
+        <div className="px-8 py-6">
+          <div className="grid grid-cols-4 gap-4 mb-8">
+            <StatCard
+              label="Topics Completed"
+              value={`${completedCount} / ${totalTopics}`}
+              subtext={`${completionPct}% complete`}
+              icon="ti-books"
+              iconBgClass="bg-blue-50"
+              iconTextClass="text-blue-600"
+            />
+            <StatCard
+              label="Today's Tasks"
+              value={`${todaysDoneCount} done / ${todaysLogs.length} total`}
+              subtext={`${todaysPendingCount} pending`}
+              icon="ti-check"
+              iconBgClass="bg-green-50"
+              iconTextClass="text-green-600"
+            />
+            <StatCard
+              label="Best Streak"
+              value={`${bestStreak.current_streak} days`}
+              subtext={bestStreakTaskName ?? 'No streaks yet'}
+              icon="ti-flame"
+              iconBgClass="bg-orange-50"
+              iconTextClass="text-orange-500"
+            />
+            <StatCard
+              label="This Week"
+              value={`${weekYesCount} tasks done`}
+              subtext="in the last 7 days"
+              icon="ti-chart-bar"
+              iconBgClass="bg-purple-50"
+              iconTextClass="text-purple-600"
+            />
           </div>
-          <p className="text-xs text-gray-400">Last updated just now</p>
-        </div>
-
-        <div className="grid grid-cols-4 gap-4 mb-8">
-          <StatCard
-            label="Topics Completed"
-            value={`${completedCount} / ${totalTopics}`}
-            subtext={`${completionPct}% complete`}
-            icon="ti-books"
-            iconBgClass="bg-blue-50"
-            iconTextClass="text-blue-600"
-          />
-          <StatCard
-            label="Today's Tasks"
-            value={`${todaysDoneCount} done / ${todaysLogs.length} total`}
-            subtext={`${todaysPendingCount} pending`}
-            icon="ti-check"
-            iconBgClass="bg-green-50"
-            iconTextClass="text-green-600"
-          />
-          <StatCard
-            label="Best Streak"
-            value={`${bestStreak.current_streak} days`}
-            subtext={bestStreakTaskName ?? 'No streaks yet'}
-            icon="ti-flame"
-            iconBgClass="bg-orange-50"
-            iconTextClass="text-orange-500"
-          />
-          <StatCard
-            label="This Week"
-            value={`${weekYesCount} tasks done`}
-            subtext="in the last 7 days"
-            icon="ti-chart-bar"
-            iconBgClass="bg-purple-50"
-            iconTextClass="text-purple-600"
-          />
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-base font-semibold text-gray-900">Learning Plan</p>
-            <span className="bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-full">
-              {completedCount} of {totalTopics} complete
-            </span>
-          </div>
-
-          <div>
-            {phaseStats.map((p, index) => {
-              const pct = p.total ? Math.round((p.completed / p.total) * 100) : 0
-              const isLast = index === phaseStats.length - 1
-              return (
-                <div
-                  key={p.phase}
-                  className={
-                    isLast
-                      ? 'flex items-center gap-4 py-3'
-                      : 'flex items-center gap-4 py-3 border-b border-gray-50'
-                  }
-                >
-                  <span className="text-sm font-medium w-48 flex-shrink-0">
-                    {PHASE_NAMES[p.phase] ?? `Phase ${p.phase}`}
-                  </span>
-                  <span className="text-xs text-gray-400 w-20 flex-shrink-0">
-                    {p.completed}/{p.total} topics
-                  </span>
-                  <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${getPhaseRowBarClass(p.phase)}`}
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-gray-700 w-10 text-right">{pct}%</span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-6 mb-6">
-          <div className="bg-white rounded-xl border border-gray-100 p-6">
+  
+          <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
-              <p className="text-base font-semibold text-gray-900">This week</p>
-              <span className="bg-green-50 text-green-700 text-sm px-3 py-1 rounded-full">
-                {weekCompletionRate}% completion
+              <p className="text-base font-semibold text-gray-900">Learning Plan</p>
+              <span className="bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-full">
+                {completedCount} of {totalTopics} complete
               </span>
             </div>
-            <ResponsiveContainer width="100%" height={160}>
-              <BarChart data={last7Days}>
-                <XAxis dataKey="label" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-                <Tooltip
-                  cursor={{ fill: '#f3f4f6' }}
-                  contentStyle={{
-                    borderRadius: 8,
-                    border: '1px solid #e5e7eb',
-                    fontSize: 12,
-                  }}
-                />
-                <Bar dataKey="count" fill="#6366f1" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-            <p className="text-sm text-gray-500 mt-4">{weekYesCount} tasks completed this week</p>
-          </div>
-
-          <div className="bg-white rounded-xl border border-gray-100 p-6">
-            <p className="text-base font-semibold text-gray-900 mb-4">Streaks</p>
-            {streakList.length === 0 ? (
-              <p className="text-sm text-gray-400">Complete tasks daily to build streaks 🔥</p>
-            ) : (
-              <div>
-                {streakList.map((s, index) => {
-                  const barPct = Math.min(100, (s.current_streak / maxLongestStreak) * 100)
-                  const isLast = index === streakList.length - 1
-                  return (
-                    <div key={s.id} className={isLast ? 'py-3' : 'py-3 border-b border-gray-50'}>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-sm font-medium text-gray-900">{s.taskName}</span>
-                        <span className="text-sm text-gray-500 whitespace-nowrap">
-                          🔥 <span className="text-orange-500 font-medium">{s.current_streak}</span>{' '}
-                          days
-                        </span>
-                      </div>
-                      <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-orange-400 rounded-full"
-                          style={{ width: `${barPct}%` }}
-                        />
-                      </div>
+  
+            <div>
+              {phaseStats.map((p, index) => {
+                const pct = p.total ? Math.round((p.completed / p.total) * 100) : 0
+                const isLast = index === phaseStats.length - 1
+                return (
+                  <div
+                    key={p.phase}
+                    className={
+                      isLast
+                        ? 'flex items-center gap-4 py-3'
+                        : 'flex items-center gap-4 py-3 border-b border-gray-50'
+                    }
+                  >
+                    <span className="text-sm font-medium w-48 flex-shrink-0">
+                      {PHASE_NAMES[p.phase] ?? `Phase ${p.phase}`}
+                    </span>
+                    <span className="text-xs text-gray-400 w-20 flex-shrink-0">
+                      {p.completed}/{p.total} topics
+                    </span>
+                    <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${getPhaseRowBarClass(p.phase)}`}
+                        style={{ width: `${pct}%` }}
+                      />
                     </div>
-                  )
-                })}
+                    <span className="text-sm font-medium text-gray-700 w-10 text-right">{pct}%</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+  
+          <div className="grid grid-cols-2 gap-6 mb-6">
+            <div className="bg-white rounded-xl border border-gray-100 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-base font-semibold text-gray-900">This week</p>
+                <span className="bg-green-50 text-green-700 text-sm px-3 py-1 rounded-full">
+                  {weekCompletionRate}% completion
+                </span>
+              </div>
+              <ResponsiveContainer width="100%" height={160}>
+                <BarChart data={last7Days}>
+                  <XAxis dataKey="label" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    cursor={{ fill: '#f3f4f6' }}
+                    contentStyle={{
+                      borderRadius: 8,
+                      border: '1px solid #e5e7eb',
+                      fontSize: 12,
+                    }}
+                  />
+                  <Bar dataKey="count" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+              <p className="text-sm text-gray-500 mt-4">{weekYesCount} tasks completed this week</p>
+            </div>
+  
+            <div className="bg-white rounded-xl border border-gray-100 p-6">
+              <p className="text-base font-semibold text-gray-900 mb-4">Streaks</p>
+              {streakList.length === 0 ? (
+                <p className="text-sm text-gray-400">Complete tasks daily to build streaks 🔥</p>
+              ) : (
+                <div>
+                  {streakList.map((s, index) => {
+                    const barPct = Math.min(100, (s.current_streak / maxLongestStreak) * 100)
+                    const isLast = index === streakList.length - 1
+                    return (
+                      <div key={s.id} className={isLast ? 'py-3' : 'py-3 border-b border-gray-50'}>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-sm font-medium text-gray-900">{s.taskName}</span>
+                          <span className="text-sm text-gray-500 whitespace-nowrap">
+                            🔥 <span className="text-orange-500 font-medium">{s.current_streak}</span>{' '}
+                            days
+                          </span>
+                        </div>
+                        <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-orange-400 rounded-full"
+                            style={{ width: `${barPct}%` }}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+  
+          <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
+            <p className="text-base font-semibold text-gray-900 mb-4">Phase breakdown</p>
+            <div className="grid grid-cols-3 gap-6">
+              {phaseStats.map((p) => {
+                const colors = getPhaseColorClasses(p.phase)
+                const pct = p.total ? Math.round((p.completed / p.total) * 100) : 0
+                return (
+                  <div key={p.phase}>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className={`text-sm font-semibold ${colors.text}`}>
+                        {PHASE_NAMES[p.phase] ?? `Phase ${p.phase}`}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {p.completed}/{p.total}
+                      </span>
+                    </div>
+                    <p className={`text-4xl font-bold ${colors.text}`}>{pct}%</p>
+                    <p className="text-sm text-gray-500 mb-3">complete</p>
+                    <p className="text-xs text-gray-400 mb-3">
+                      {p.mandatoryCompleted} mandatory · {p.optionalCompleted} optional
+                    </p>
+                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${colors.bar}`} style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+  
+            {lastCompletedTopics.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <p className="text-xs text-gray-400 mb-2">Recently completed</p>
+                <div className="flex flex-col gap-1.5">
+                  {lastCompletedTopics.map((topic) => (
+                    <div key={topic.id} className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
+                      <span className="text-sm text-gray-700">{topic.title}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
-          <p className="text-base font-semibold text-gray-900 mb-4">Phase breakdown</p>
-          <div className="grid grid-cols-3 gap-6">
-            {phaseStats.map((p) => {
-              const colors = getPhaseColorClasses(p.phase)
-              const pct = p.total ? Math.round((p.completed / p.total) * 100) : 0
-              return (
-                <div key={p.phase}>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className={`text-sm font-semibold ${colors.text}`}>
-                      {PHASE_NAMES[p.phase] ?? `Phase ${p.phase}`}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {p.completed}/{p.total}
-                    </span>
-                  </div>
-                  <p className={`text-4xl font-bold ${colors.text}`}>{pct}%</p>
-                  <p className="text-sm text-gray-500 mb-3">complete</p>
-                  <p className="text-xs text-gray-400 mb-3">
-                    {p.mandatoryCompleted} mandatory · {p.optionalCompleted} optional
-                  </p>
-                  <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full ${colors.bar}`} style={{ width: `${pct}%` }} />
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-
-          {lastCompletedTopics.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <p className="text-xs text-gray-400 mb-2">Recently completed</p>
-              <div className="flex flex-col gap-1.5">
-                {lastCompletedTopics.map((topic) => (
-                  <div key={topic.id} className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
-                    <span className="text-sm text-gray-700">{topic.title}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </>

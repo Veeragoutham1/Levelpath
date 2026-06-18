@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import Sidebar from '../components/layout/Sidebar'
+import TopBar from '../components/layout/TopBar'
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -495,8 +496,10 @@ function TaskTrackerPage() {
     <>
       <Sidebar />
       <div className="ml-[220px] min-h-screen bg-gray-50">
-        <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-center">
-          <div className="flex items-center gap-2">
+        <TopBar title="Task Tracker" />
+
+        <main className="px-8 py-6">
+          <div className="flex items-center justify-center gap-2 mb-6">
             <button
               onClick={() => setView('daily')}
               className={
@@ -518,9 +521,7 @@ function TaskTrackerPage() {
               All Tasks
             </button>
           </div>
-        </nav>
 
-        <main className="px-8 py-6">
           {view === 'daily' && (
             <div>
               <div className="mb-6">

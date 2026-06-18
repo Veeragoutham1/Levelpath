@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 
@@ -12,7 +12,6 @@ const NAV_LINKS = [
 function Sidebar() {
   const { user } = useAuth()
   const location = useLocation()
-  const navigate = useNavigate()
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
@@ -27,13 +26,6 @@ function Sidebar() {
 
     checkAdmin()
   }, [user])
-
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    navigate('/login')
-  }
-
-  const initial = user?.email ? user.email.charAt(0).toUpperCase() : '?'
 
   return (
     <div className="fixed left-0 top-0 h-screen w-[220px] z-40 bg-white border-r border-gray-200 flex flex-col">
@@ -82,20 +74,7 @@ function Sidebar() {
         )}
       </nav>
 
-      <div className="px-4 py-4 border-t border-gray-200">
-        <div className="flex items-center gap-2 mb-2 min-w-0">
-          <span className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-900 text-white text-sm font-semibold flex items-center justify-center">
-            {initial}
-          </span>
-          <span className="text-xs text-gray-500 truncate">{user?.email}</span>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="text-xs font-medium text-red-600 hover:text-red-700"
-        >
-          Log out
-        </button>
-      </div>
+      <div className="border-t border-gray-200" />
     </div>
   )
 }
