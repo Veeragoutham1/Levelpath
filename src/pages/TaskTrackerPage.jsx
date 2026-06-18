@@ -76,10 +76,10 @@ async function loadTaskTrackerData(userId, todayStr) {
   return { tasks: activeTasks, todayLogs: finalLogs, streaks: streaksData ?? [] }
 }
 
-function PriorityDot({ priority }) {
-  const colorClass =
-    priority === 'high' ? 'bg-red-500' : priority === 'medium' ? 'bg-yellow-400' : 'bg-blue-400'
-  return <span className={`inline-block h-2.5 w-2.5 rounded-full shrink-0 mt-1 ${colorClass}`} />
+function getPriorityAccentClass(priority) {
+  if (priority === 'high') return 'border-l-4 border-l-red-500'
+  if (priority === 'medium') return 'border-l-4 border-l-yellow-400'
+  return 'border-l-4 border-l-blue-400'
 }
 
 function PriorityBadge({ priority }) {
@@ -98,21 +98,20 @@ function PriorityBadge({ priority }) {
 
 function TaskCard({ task, status, streak, onMark }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 mb-3 flex items-start justify-between gap-4">
-      <div className="flex items-start gap-3 min-w-0">
-        <PriorityDot priority={task.priority} />
-        <div className="min-w-0">
-          <p className="font-bold text-gray-900">{task.name}</p>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
-              {task.schedule_type === 'goal' ? 'Goal-based' : 'Daily'}
-            </span>
-            {task.schedule_type === 'goal' && task.end_date && (
-              <span className="text-xs text-gray-500">Ends {task.end_date}</span>
-            )}
-          </div>
-          {task.notes && <p className="text-xs text-gray-500 mt-1">{task.notes}</p>}
+    <div
+      className={`bg-white border border-gray-200 rounded-xl p-5 mb-3 w-full flex items-start justify-between gap-4 ${getPriorityAccentClass(task.priority)}`}
+    >
+      <div className="min-w-0">
+        <p className="text-base font-semibold text-gray-900">{task.name}</p>
+        <div className="flex items-center gap-2 mt-1">
+          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+            {task.schedule_type === 'goal' ? 'Goal-based' : 'Daily'}
+          </span>
+          {task.schedule_type === 'goal' && task.end_date && (
+            <span className="text-xs text-gray-500">Ends {task.end_date}</span>
+          )}
         </div>
+        {task.notes && <p className="text-xs text-gray-500 mt-1">{task.notes}</p>}
       </div>
 
       <div className="flex items-center gap-3 shrink-0">
@@ -121,8 +120,8 @@ function TaskCard({ task, status, streak, onMark }) {
           onClick={() => onMark('yes')}
           className={
             status === 'yes'
-              ? 'text-sm font-medium px-3 py-1.5 rounded-md border bg-green-500 text-white border-green-500'
-              : 'text-sm font-medium px-3 py-1.5 rounded-md border bg-white text-green-600 border-green-500 hover:bg-green-50'
+              ? 'text-sm font-medium px-5 py-2 rounded-md border bg-green-500 text-white border-green-500'
+              : 'text-sm font-medium px-5 py-2 rounded-md border bg-white text-green-600 border-green-500 hover:bg-green-50'
           }
         >
           Yes
@@ -131,8 +130,8 @@ function TaskCard({ task, status, streak, onMark }) {
           onClick={() => onMark('no')}
           className={
             status === 'no'
-              ? 'text-sm font-medium px-3 py-1.5 rounded-md border bg-red-500 text-white border-red-500'
-              : 'text-sm font-medium px-3 py-1.5 rounded-md border bg-white text-red-600 border-red-500 hover:bg-red-50'
+              ? 'text-sm font-medium px-5 py-2 rounded-md border bg-red-500 text-white border-red-500'
+              : 'text-sm font-medium px-5 py-2 rounded-md border bg-white text-red-600 border-red-500 hover:bg-red-50'
           }
         >
           No
@@ -496,7 +495,7 @@ function TaskTrackerPage() {
     <>
       <Sidebar />
       <div className="ml-[220px] min-h-screen bg-gray-50">
-        <nav className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-center">
+        <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-center">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setView('daily')}
@@ -521,7 +520,7 @@ function TaskTrackerPage() {
           </div>
         </nav>
 
-        <main className="max-w-4xl mx-auto px-6 py-8">
+        <main className="px-8 py-6">
           {view === 'daily' && (
             <div>
               <div className="mb-6">
@@ -613,7 +612,10 @@ function TaskTrackerPage() {
   
               <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">
                 {tasks.map((task) => (
-                  <div key={task.id} className="flex items-center justify-between gap-4 px-4 py-3">
+                  <div
+                    key={task.id}
+                    className={`flex items-center justify-between gap-4 px-4 py-3 ${getPriorityAccentClass(task.priority)}`}
+                  >
                     <div className="flex items-center gap-3 min-w-0">
                       <p className="font-medium text-gray-900 truncate">{task.name}</p>
                       <PriorityBadge priority={task.priority} />
