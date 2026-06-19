@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import Sidebar from '../components/layout/Sidebar'
 import TopBar from '../components/layout/TopBar'
 
@@ -290,6 +291,7 @@ function TaskForm({ form, setForm, editingTask, onToggleExcludedDay, onSubmit, o
 
 function TaskTrackerPage() {
   const { user } = useAuth()
+  const { showToast } = useToast()
 
   const [view, setView] = useState('daily')
   const [tasks, setTasks] = useState([])
@@ -400,15 +402,22 @@ function TaskTrackerPage() {
       )
     )
 
-    await supabase
+    const { error } = await supabase
       .from('task_logs')
       .update({ status, marked_at: new Date().toISOString() })
       .eq('id', log.id)
 
+    if (error) {
+      showToast('Something went wrong, please try again', 'error')
+      return
+    }
+
     if (status === 'yes') {
       await updateStreakOnYes(task.id)
+      showToast('Marked as done', 'success')
     } else if (status === 'no') {
       await resetStreakToZero(task.id)
+      showToast('Marked as not done', 'info')
     }
   }
 
@@ -464,19 +473,30 @@ function TaskTrackerPage() {
       reminder_time: form.reminderEnabled ? form.reminderTime : null,
     }
 
-    if (editingTask) {
-      await supabase.from('tasks').update(payload).eq('id', editingTask.id)
-    } else {
-      await supabase.from('tasks').insert({ ...payload, user_id: user.id, is_active: true })
+    const { error } = editingTask
+      ? await supabase.from('tasks').update(payload).eq('id', editingTask.id)
+      : await supabase.from('tasks').insert({ ...payload, user_id: user.id, is_active: true })
+
+    if (error) {
+      showToast('Something went wrong, please try again', 'error')
+      return
     }
 
     closeForm()
     await refreshTaskData()
+    showToast(editingTask ? 'Task updated' : 'Task created', 'success')
   }
 
   async function handleDeleteTask(taskId) {
-    await supabase.from('tasks').update({ is_active: false }).eq('id', taskId)
+    const { error } = await supabase.from('tasks').update({ is_active: false }).eq('id', taskId)
+
+    if (error) {
+      showToast('Something went wrong, please try again', 'error')
+      return
+    }
+
     setTasks((prev) => prev.filter((t) => t.id !== taskId))
+    showToast('Task deleted', 'success')
   }
 
   if (loading) {

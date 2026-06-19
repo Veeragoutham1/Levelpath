@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useToast } from '../context/ToastContext'
 
 const FEATURES = [
   '3-phase Gen AI curriculum',
@@ -9,6 +10,7 @@ const FEATURES = [
 ]
 
 function SignupPage() {
+  const { showToast } = useToast()
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -31,10 +33,12 @@ function SignupPage() {
 
     if (error) {
       setError(error.message || 'Something went wrong. Please try again.')
+      showToast('Signup failed', 'error')
       return
     }
 
     setSuccess(true)
+    showToast('Account created! Check your email to confirm.', 'success')
   }
 
   return (

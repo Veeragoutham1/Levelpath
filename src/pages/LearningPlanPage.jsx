@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import Sidebar from '../components/layout/Sidebar'
 
 const PHASE_NAMES = {
@@ -173,6 +174,7 @@ function TopicDetail({ topic, isCompleted, onToggleComplete }) {
 
 function LearningPlanPage() {
   const { user } = useAuth()
+  const { showToast } = useToast()
   const [topics, setTopics] = useState([])
   const [completedTopicIds, setCompletedTopicIds] = useState(new Set())
   const [loading, setLoading] = useState(true)
@@ -231,9 +233,27 @@ function LearningPlanPage() {
     })
 
     if (isCompleted) {
-      await supabase.from('user_progress').delete().eq('user_id', user.id).eq('topic_id', topicId)
+      const { error } = await supabase
+        .from('user_progress')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('topic_id', topicId)
+
+      if (error) {
+        showToast('Something went wrong, please try again', 'error')
+      } else {
+        showToast('Topic marked incomplete', 'info')
+      }
     } else {
-      await supabase.from('user_progress').insert({ user_id: user.id, topic_id: topicId })
+      const { error } = await supabase
+        .from('user_progress')
+        .insert({ user_id: user.id, topic_id: topicId })
+
+      if (error) {
+        showToast('Something went wrong, please try again', 'error')
+      } else {
+        showToast('Topic marked complete', 'success')
+      }
     }
   }
 

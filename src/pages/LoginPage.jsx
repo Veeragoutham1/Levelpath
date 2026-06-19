@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useToast } from '../context/ToastContext'
 
 const FEATURES = [
   '3-phase Gen AI curriculum',
@@ -10,6 +11,7 @@ const FEATURES = [
 
 function LoginPage() {
   const navigate = useNavigate()
+  const { showToast } = useToast()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
@@ -25,9 +27,11 @@ function LoginPage() {
     if (error) {
       setError(error.message || 'Something went wrong. Please try again.')
       setLoading(false)
+      showToast('Login failed', 'error')
       return
     }
 
+    showToast('Welcome back!', 'success')
     navigate('/dashboard')
   }
 
