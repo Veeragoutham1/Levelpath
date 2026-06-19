@@ -225,7 +225,10 @@ function TaskForm({ form, setForm, editingTask, onToggleExcludedDay, onSubmit, o
         <label className="block text-sm font-medium text-gray-700 mb-2">Exclude days</label>
         <div className="flex gap-3">
           {DAY_LABELS.map((label, index) => (
-            <label key={label} className="flex flex-col items-center gap-1 text-xs text-gray-600">
+            <label
+              key={label}
+              className="flex flex-col items-center gap-1 text-xs text-gray-600 cursor-pointer"
+            >
               <input
                 type="checkbox"
                 checked={form.excludedDays.includes(index)}
@@ -246,7 +249,10 @@ function TaskForm({ form, setForm, editingTask, onToggleExcludedDay, onSubmit, o
           onChange={(e) => setForm((prev) => ({ ...prev, reminderEnabled: e.target.checked }))}
           className="h-4 w-4"
         />
-        <label htmlFor="reminderEnabled" className="text-sm font-medium text-gray-700">
+        <label
+          htmlFor="reminderEnabled"
+          className="text-sm font-medium text-gray-700 cursor-pointer"
+        >
           Enable email reminder
         </label>
       </div>
