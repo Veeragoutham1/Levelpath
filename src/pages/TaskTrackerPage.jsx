@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { getTodayIST, getISTDayOfWeek, getYesterdayIST } from '../lib/dateUtils'
+import { SIDEBAR_WIDTH } from '../lib/constants'
 import Sidebar from '../components/layout/Sidebar'
 import TopBar from '../components/layout/TopBar'
 
@@ -52,7 +53,7 @@ async function loadTaskTrackerData(userId, todayStr) {
 
   let finalLogs = existingLogs
   if (tasksMissingLogs.length > 0) {
-    await supabase.from('task_logs').insert(
+    const { error: insertError } = await supabase.from('task_logs').insert(
       tasksMissingLogs.map((task) => ({
         task_id: task.id,
         user_id: userId,
@@ -61,13 +62,15 @@ async function loadTaskTrackerData(userId, todayStr) {
       }))
     )
 
-    const { data: refreshedLogs } = await supabase
-      .from('task_logs')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('log_date', todayStr)
+    if (!insertError) {
+      const { data: refreshedLogs } = await supabase
+        .from('task_logs')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('log_date', todayStr)
 
-    finalLogs = refreshedLogs ?? []
+      finalLogs = refreshedLogs ?? []
+    }
   }
 
   const { data: streaksData } = await supabase.from('streaks').select('*').eq('user_id', userId)
@@ -424,12 +427,6 @@ function TaskTrackerPage() {
     setMarkingTaskId(task.id)
 
     try {
-      setTodayLogs((prev) =>
-        prev.map((l) =>
-          l.id === log.id ? { ...l, status, marked_at: new Date().toISOString() } : l
-        )
-      )
-
       const { error } = await supabase
         .from('task_logs')
         .update({ status, marked_at: new Date().toISOString() })
@@ -439,6 +436,12 @@ function TaskTrackerPage() {
         showToast('Something went wrong, please try again', 'error')
         return
       }
+
+      setTodayLogs((prev) =>
+        prev.map((l) =>
+          l.id === log.id ? { ...l, status, marked_at: new Date().toISOString() } : l
+        )
+      )
 
       if (status === 'yes') {
         await updateStreakOnYes(task.id)
@@ -534,7 +537,10 @@ function TaskTrackerPage() {
     return (
       <>
         <Sidebar />
-        <div className="ml-[220px] min-h-screen bg-gray-50 flex items-center justify-center">
+        <div
+          className="min-h-screen bg-gray-50 flex items-center justify-center"
+          style={{ marginLeft: SIDEBAR_WIDTH }}
+        >
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-gray-900" />
         </div>
       </>
@@ -552,7 +558,7 @@ function TaskTrackerPage() {
   return (
     <>
       <Sidebar />
-      <div className="ml-[220px] min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50" style={{ marginLeft: SIDEBAR_WIDTH }}>
         <TopBar title="Task Tracker" />
 
         <main className="px-8 py-6">

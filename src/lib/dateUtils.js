@@ -12,9 +12,13 @@ export function getISTDayOfWeek() {
   return istTime.getUTCDay() // 0 = Sunday, 6 = Saturday
 }
 
-export function getYesterdayIST() {
+export function getDaysAgoIST(n) {
   const now = new Date()
   const istTime = new Date(now.getTime() + IST_OFFSET_MS)
-  istTime.setUTCDate(istTime.getUTCDate() - 1)
+  istTime.setUTCDate(istTime.getUTCDate() - n)
   return istTime.toISOString().split('T')[0]
+}
+
+export function getYesterdayIST() {
+  return getDaysAgoIST(1)
 }

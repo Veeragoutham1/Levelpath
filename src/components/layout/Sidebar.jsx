@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { SIDEBAR_WIDTH } from '../../lib/constants'
 
 const NAV_LINKS = [
   { to: '/dashboard', label: 'Dashboard', icon: 'ti-layout-dashboard' },
@@ -28,7 +29,10 @@ function Sidebar() {
   }, [user])
 
   return (
-    <div className="fixed left-0 top-0 h-screen w-[220px] z-40 bg-white border-r border-gray-200 flex flex-col">
+    <div
+      className="fixed left-0 top-0 h-screen z-40 bg-white border-r border-gray-200 flex flex-col"
+      style={{ width: SIDEBAR_WIDTH }}
+    >
       <div className="px-4 py-4">
         <p className="text-lg font-bold text-gray-900">Levelpath</p>
         <p className="text-xs text-gray-500 mt-0.5">by Veera</p>

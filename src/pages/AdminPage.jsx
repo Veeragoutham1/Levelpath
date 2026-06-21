@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { getTodayIST } from '../lib/dateUtils'
+import { SIDEBAR_WIDTH } from '../lib/constants'
 import Sidebar from '../components/layout/Sidebar'
+import StatCard from '../components/ui/StatCard'
 
 function formatJoinedDate(dateStr) {
   if (!dateStr) return '—'
@@ -60,21 +62,6 @@ async function loadAdminData(today) {
   }
 }
 
-function StatCard({ label, value, subtext, icon, iconBgClass, iconTextClass }) {
-  return (
-    <div className="bg-white rounded-xl border border-gray-100 p-6">
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-gray-400 uppercase tracking-wide">{label}</p>
-        <span className={`w-9 h-9 rounded-full flex items-center justify-center ${iconBgClass}`}>
-          <i className={`ti ${icon} ${iconTextClass}`} />
-        </span>
-      </div>
-      <p className="text-3xl font-bold text-gray-900 my-2">{value}</p>
-      <p className="text-sm text-gray-500">{subtext}</p>
-    </div>
-  )
-}
-
 function RoleBadge({ role }) {
   return (
     <span
@@ -126,7 +113,10 @@ function AdminPage() {
     return (
       <>
         <Sidebar />
-        <div className="ml-[220px] min-h-screen bg-gray-50 flex items-center justify-center">
+        <div
+          className="min-h-screen bg-gray-50 flex items-center justify-center"
+          style={{ marginLeft: SIDEBAR_WIDTH }}
+        >
           <p className="text-gray-400 text-sm">Loading admin panel...</p>
         </div>
       </>
@@ -165,7 +155,7 @@ function AdminPage() {
   return (
     <>
       <Sidebar />
-      <div className="ml-[220px] min-h-screen bg-gray-50 px-8 py-6">
+      <div className="min-h-screen bg-gray-50 px-8 py-6" style={{ marginLeft: SIDEBAR_WIDTH }}>
         <div className="mb-8">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
@@ -182,32 +172,28 @@ function AdminPage() {
             value={totalUsers}
             subtext="registered accounts"
             icon="ti-users"
-            iconBgClass="bg-blue-50"
-            iconTextClass="text-blue-600"
+            iconColorClass="bg-blue-50 text-blue-600"
           />
           <StatCard
             label="Active Tasks"
             value={totalActiveTasks}
             subtext="across all users"
             icon="ti-checkbox"
-            iconBgClass="bg-green-50"
-            iconTextClass="text-green-600"
+            iconColorClass="bg-green-50 text-green-600"
           />
           <StatCard
             label="Topics Done Today"
             value={topicsDoneTodayCount}
             subtext="completions today"
             icon="ti-books"
-            iconBgClass="bg-purple-50"
-            iconTextClass="text-purple-600"
+            iconColorClass="bg-purple-50 text-purple-600"
           />
           <StatCard
             label="Tasks Done Today"
             value={tasksDoneTodayCount}
             subtext="marked yes today"
             icon="ti-check"
-            iconBgClass="bg-orange-50"
-            iconTextClass="text-orange-500"
+            iconColorClass="bg-orange-50 text-orange-500"
           />
         </div>
 

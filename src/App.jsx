@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/layout/ProtectedRoute'
@@ -6,8 +7,17 @@ import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import LearningPlanPage from './pages/LearningPlanPage'
 import TaskTrackerPage from './pages/TaskTrackerPage'
-import DashboardPage from './pages/DashboardPage'
 import AdminPage from './pages/AdminPage'
+
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+
+function DashboardFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <p className="text-gray-400 text-sm">Loading...</p>
+    </div>
+  )
+}
 
 function HomeRedirect() {
   const { user, loading } = useAuth()
@@ -49,7 +59,9 @@ function AppRoutes() {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <DashboardPage />
+            <Suspense fallback={<DashboardFallback />}>
+              <DashboardPage />
+            </Suspense>
           </ProtectedRoute>
         }
       />

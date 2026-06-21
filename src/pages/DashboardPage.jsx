@@ -2,15 +2,11 @@ import { useEffect, useState } from 'react'
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
-import { getTodayIST } from '../lib/dateUtils'
+import { getTodayIST, getDaysAgoIST } from '../lib/dateUtils'
+import { PHASE_NAMES, SIDEBAR_WIDTH } from '../lib/constants'
 import Sidebar from '../components/layout/Sidebar'
 import TopBar from '../components/layout/TopBar'
-
-const PHASE_NAMES = {
-  1: 'Phase 1 — AI Basics',
-  2: 'Phase 2 — Agentic Dev',
-  3: 'Phase 3 — RAG & Deployment',
-}
+import StatCard from '../components/ui/StatCard'
 
 function getPhaseColorClasses(phase) {
   if (phase === 1) return { bar: 'bg-blue-500', text: 'text-blue-700' }
@@ -25,7 +21,7 @@ function getPhaseRowBarClass(phase) {
 }
 
 async function loadDashboardData(userId) {
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  const sevenDaysAgo = getDaysAgoIST(7)
 
   const [topicsRes, progressRes, tasksRes, logsRes, streaksRes, profileRes] = await Promise.all([
     supabase.from('topics').select('*'),
@@ -44,21 +40,6 @@ async function loadDashboardData(userId) {
     streaks: streaksRes.data ?? [],
     profile: profileRes.data ?? null,
   }
-}
-
-function StatCard({ label, value, subtext, icon, iconBgClass, iconTextClass }) {
-  return (
-    <div className="bg-white rounded-xl border border-gray-100 p-6">
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-gray-400 uppercase tracking-wide">{label}</p>
-        <span className={`w-9 h-9 rounded-full flex items-center justify-center ${iconBgClass}`}>
-          <i className={`ti ${icon} ${iconTextClass}`} />
-        </span>
-      </div>
-      <p className="text-3xl font-bold text-gray-900 my-2">{value}</p>
-      <p className="text-sm text-gray-500">{subtext}</p>
-    </div>
-  )
 }
 
 function DashboardPage() {
@@ -98,7 +79,10 @@ function DashboardPage() {
     return (
       <>
         <Sidebar />
-        <div className="ml-[220px] min-h-screen bg-gray-50 flex items-center justify-center">
+        <div
+          className="min-h-screen bg-gray-50 flex items-center justify-center"
+          style={{ marginLeft: SIDEBAR_WIDTH }}
+        >
           <p className="text-gray-400 text-sm">Loading dashboard...</p>
         </div>
       </>
@@ -143,11 +127,13 @@ function DashboardPage() {
   })
 
   const last7Days = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date()
-    date.setDate(date.getDate() - (6 - i))
-    const dateStr = date.toISOString().split('T')[0]
+    const dateStr = getDaysAgoIST(6 - i)
+    const label = new Date(`${dateStr}T00:00:00Z`).toLocaleDateString('en-US', {
+      weekday: 'short',
+      timeZone: 'UTC',
+    })
     return {
-      label: date.toLocaleDateString('en-US', { weekday: 'short' }),
+      label,
       count: logs7d.filter((l) => l.log_date === dateStr && l.status === 'yes').length,
     }
   })
@@ -171,7 +157,7 @@ function DashboardPage() {
   return (
     <>
       <Sidebar />
-      <div className="ml-[220px] min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50" style={{ marginLeft: SIDEBAR_WIDTH }}>
         <TopBar title="Dashboard" />
         <div className="px-8 py-6">
           <div className="grid grid-cols-4 gap-4 mb-8">
@@ -180,32 +166,28 @@ function DashboardPage() {
               value={`${completedCount} / ${totalTopics}`}
               subtext={`${completionPct}% complete`}
               icon="ti-books"
-              iconBgClass="bg-blue-50"
-              iconTextClass="text-blue-600"
+              iconColorClass="bg-blue-50 text-blue-600"
             />
             <StatCard
               label="Today's Tasks"
               value={`${todaysDoneCount} done / ${todaysLogs.length} total`}
               subtext={`${todaysPendingCount} pending`}
               icon="ti-check"
-              iconBgClass="bg-green-50"
-              iconTextClass="text-green-600"
+              iconColorClass="bg-green-50 text-green-600"
             />
             <StatCard
               label="Best Streak"
               value={`${bestStreak.current_streak} days`}
               subtext={bestStreakTaskName ?? 'No streaks yet'}
               icon="ti-flame"
-              iconBgClass="bg-orange-50"
-              iconTextClass="text-orange-500"
+              iconColorClass="bg-orange-50 text-orange-500"
             />
             <StatCard
               label="This Week"
               value={`${weekYesCount} tasks done`}
               subtext="in the last 7 days"
               icon="ti-chart-bar"
-              iconBgClass="bg-purple-50"
-              iconTextClass="text-purple-600"
+              iconColorClass="bg-purple-50 text-purple-600"
             />
           </div>
   
