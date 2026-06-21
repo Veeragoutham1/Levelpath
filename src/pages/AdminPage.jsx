@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { getTodayIST } from '../lib/dateUtils'
 import Sidebar from '../components/layout/Sidebar'
-
-function getTodayString() {
-  return new Date().toISOString().split('T')[0]
-}
 
 function formatJoinedDate(dateStr) {
   if (!dateStr) return '—'
@@ -104,7 +101,7 @@ function AdminPage() {
   useEffect(() => {
     async function load() {
       try {
-        const result = await loadAdminData(getTodayString())
+        const result = await loadAdminData(getTodayIST())
         setProfiles(result.profiles)
         setAllProgress(result.allProgress)
         setActiveTasks(result.activeTasks)
@@ -136,7 +133,7 @@ function AdminPage() {
     )
   }
 
-  const today = getTodayString()
+  const today = getTodayIST()
 
   const totalUsers = profiles.length
   const totalActiveTasks = activeTasks.length

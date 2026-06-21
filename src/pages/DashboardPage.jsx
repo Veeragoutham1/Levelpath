@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { getTodayIST } from '../lib/dateUtils'
 import Sidebar from '../components/layout/Sidebar'
 import TopBar from '../components/layout/TopBar'
 
@@ -9,10 +10,6 @@ const PHASE_NAMES = {
   1: 'Phase 1 — AI Basics',
   2: 'Phase 2 — Agentic Dev',
   3: 'Phase 3 — RAG & Deployment',
-}
-
-function getTodayString() {
-  return new Date().toISOString().split('T')[0]
 }
 
 function getPhaseColorClasses(phase) {
@@ -108,7 +105,7 @@ function DashboardPage() {
     )
   }
 
-  const today = getTodayString()
+  const today = getTodayIST()
 
   const totalTopics = topics.length
   const completedCount = completedTopicIds.size

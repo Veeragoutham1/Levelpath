@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import { getTodayIST, getISTDayOfWeek, getYesterdayIST } from '../lib/dateUtils'
 import Sidebar from '../components/layout/Sidebar'
 import TopBar from '../components/layout/TopBar'
 
@@ -17,10 +18,6 @@ const DEFAULT_FORM = {
   excludedDays: [],
   reminderEnabled: false,
   reminderTime: '19:00',
-}
-
-function getTodayString() {
-  return new Date().toISOString().split('T')[0]
 }
 
 function formatTodayLong() {
@@ -98,7 +95,7 @@ function PriorityBadge({ priority }) {
   )
 }
 
-function TaskCard({ task, status, streak, onMark }) {
+function TaskCard({ task, status, streak, onMark, isMarking }) {
   return (
     <div
       className={`bg-white border border-gray-200 rounded-xl p-5 mb-3 w-full flex items-start justify-between gap-4 ${getPriorityAccentClass(task.priority)}`}
@@ -120,20 +117,22 @@ function TaskCard({ task, status, streak, onMark }) {
         <span className="text-sm text-gray-600 whitespace-nowrap">🔥 {streak} day streak</span>
         <button
           onClick={() => onMark('yes')}
+          disabled={isMarking}
           className={
             status === 'yes'
-              ? 'text-sm font-medium px-5 py-2 rounded-md border bg-green-500 text-white border-green-500'
-              : 'text-sm font-medium px-5 py-2 rounded-md border bg-white text-green-600 border-green-500 hover:bg-green-50'
+              ? 'text-sm font-medium px-5 py-2 rounded-md border bg-green-500 text-white border-green-500 disabled:opacity-50'
+              : 'text-sm font-medium px-5 py-2 rounded-md border bg-white text-green-600 border-green-500 hover:bg-green-50 disabled:opacity-50'
           }
         >
           Yes
         </button>
         <button
           onClick={() => onMark('no')}
+          disabled={isMarking}
           className={
             status === 'no'
-              ? 'text-sm font-medium px-5 py-2 rounded-md border bg-red-500 text-white border-red-500'
-              : 'text-sm font-medium px-5 py-2 rounded-md border bg-white text-red-600 border-red-500 hover:bg-red-50'
+              ? 'text-sm font-medium px-5 py-2 rounded-md border bg-red-500 text-white border-red-500 disabled:opacity-50'
+              : 'text-sm font-medium px-5 py-2 rounded-md border bg-white text-red-600 border-red-500 hover:bg-red-50 disabled:opacity-50'
           }
         >
           No
@@ -298,12 +297,13 @@ function TaskTrackerPage() {
   const [todayLogs, setTodayLogs] = useState([])
   const [streaks, setStreaks] = useState([])
   const [loading, setLoading] = useState(true)
+  const [markingTaskId, setMarkingTaskId] = useState(null)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingTask, setEditingTask] = useState(null)
   const [form, setForm] = useState(DEFAULT_FORM)
 
-  const today = getTodayString()
-  const todayDow = new Date().getDay()
+  const today = getTodayIST()
+  const todayDow = getISTDayOfWeek()
 
   useEffect(() => {
     if (!user) return
@@ -340,9 +340,6 @@ function TaskTrackerPage() {
 
   async function updateStreakOnYes(taskId) {
     const existing = getStreakForTask(taskId)
-    const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1)
-    const yesterdayStr = yesterday.toISOString().split('T')[0]
 
     if (!existing) {
       const newStreak = {
@@ -352,16 +349,22 @@ function TaskTrackerPage() {
         longest_streak: 1,
         last_completed_date: today,
       }
-      const { data } = await supabase.from('streaks').insert(newStreak).select().single()
+      const { data, error } = await supabase.from('streaks').insert(newStreak).select().single()
+      if (error) return
       setStreaks((prev) => [...prev, data ?? newStreak])
       return
     }
 
-    const wasYesterday = existing.last_completed_date === yesterdayStr
+    if (existing.last_completed_date === today) {
+      // Already confirmed today — re-clicking Yes shouldn't change the streak.
+      return
+    }
+
+    const wasYesterday = existing.last_completed_date === getYesterdayIST()
     const newCurrentStreak = wasYesterday ? existing.current_streak + 1 : 1
     const newLongestStreak = Math.max(existing.longest_streak, newCurrentStreak)
 
-    await supabase
+    const { error } = await supabase
       .from('streaks')
       .update({
         current_streak: newCurrentStreak,
@@ -369,6 +372,8 @@ function TaskTrackerPage() {
         last_completed_date: today,
       })
       .eq('id', existing.id)
+
+    if (error) return
 
     setStreaks((prev) =>
       prev.map((s) =>
@@ -388,36 +393,62 @@ function TaskTrackerPage() {
     const existing = getStreakForTask(taskId)
     if (!existing) return
 
-    await supabase.from('streaks').update({ current_streak: 0 }).eq('id', existing.id)
-    setStreaks((prev) => prev.map((s) => (s.id === existing.id ? { ...s, current_streak: 0 } : s)))
+    const { error } = await supabase
+      .from('streaks')
+      .update({ current_streak: 0, last_completed_date: null })
+      .eq('id', existing.id)
+
+    if (error) return
+
+    setStreaks((prev) =>
+      prev.map((s) =>
+        s.id === existing.id ? { ...s, current_streak: 0, last_completed_date: null } : s
+      )
+    )
   }
 
   async function handleMark(task, status) {
     const log = getLogForTask(task.id)
     if (!log) return
 
-    setTodayLogs((prev) =>
-      prev.map((l) =>
-        l.id === log.id ? { ...l, status, marked_at: new Date().toISOString() } : l
-      )
-    )
-
-    const { error } = await supabase
-      .from('task_logs')
-      .update({ status, marked_at: new Date().toISOString() })
-      .eq('id', log.id)
-
-    if (error) {
-      showToast('Something went wrong, please try again', 'error')
+    if (log.status === status) {
+      // Already in this state — re-clicking the same button is a no-op.
+      if (status === 'yes') {
+        showToast('Marked as done', 'success')
+      } else {
+        showToast('Marked as not done', 'info')
+      }
       return
     }
 
-    if (status === 'yes') {
-      await updateStreakOnYes(task.id)
-      showToast('Marked as done', 'success')
-    } else if (status === 'no') {
-      await resetStreakToZero(task.id)
-      showToast('Marked as not done', 'info')
+    setMarkingTaskId(task.id)
+
+    try {
+      setTodayLogs((prev) =>
+        prev.map((l) =>
+          l.id === log.id ? { ...l, status, marked_at: new Date().toISOString() } : l
+        )
+      )
+
+      const { error } = await supabase
+        .from('task_logs')
+        .update({ status, marked_at: new Date().toISOString() })
+        .eq('id', log.id)
+
+      if (error) {
+        showToast('Something went wrong, please try again', 'error')
+        return
+      }
+
+      if (status === 'yes') {
+        await updateStreakOnYes(task.id)
+        showToast('Marked as done', 'success')
+      } else if (status === 'no') {
+        await resetStreakToZero(task.id)
+        showToast('Marked as not done', 'info')
+      }
+    } finally {
+      setMarkingTaskId(null)
     }
   }
 
@@ -588,6 +619,7 @@ function TaskTrackerPage() {
                       status={getLogForTask(task.id)?.status ?? 'pending'}
                       streak={getStreakForTask(task.id)?.current_streak ?? 0}
                       onMark={(status) => handleMark(task, status)}
+                      isMarking={markingTaskId === task.id}
                     />
                   ))}
                 </div>

@@ -1,11 +1,15 @@
 import { supabaseAdmin } from '../supabaseAdmin.js'
 
-function getTodayString() {
-  return new Date().toISOString().split('T')[0]
+const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000
+
+function getTodayIST() {
+  const now = new Date()
+  const istTime = new Date(now.getTime() + IST_OFFSET_MS)
+  return istTime.toISOString().split('T')[0]
 }
 
 export async function runEveningReminder(resend) {
-  const today = getTodayString()
+  const today = getTodayIST()
 
   const { data: reminderTasks, error: tasksError } = await supabaseAdmin
     .from('tasks')

@@ -1,9 +1,16 @@
 import { supabaseAdmin } from '../supabaseAdmin.js'
 
+const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000
+
+function getYesterdayIST() {
+  const now = new Date()
+  const istTime = new Date(now.getTime() + IST_OFFSET_MS)
+  istTime.setUTCDate(istTime.getUTCDate() - 1)
+  return istTime.toISOString().split('T')[0]
+}
+
 export async function runMidnightReset() {
-  const yesterday = new Date()
-  yesterday.setDate(yesterday.getDate() - 1)
-  const yesterdayStr = yesterday.toISOString().split('T')[0]
+  const yesterdayStr = getYesterdayIST()
 
   const { data: pendingLogs, error } = await supabaseAdmin
     .from('task_logs')
