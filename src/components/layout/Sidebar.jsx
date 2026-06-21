@@ -7,6 +7,7 @@ import { SIDEBAR_WIDTH } from '../../lib/constants'
 const NAV_LINKS = [
   { to: '/dashboard', label: 'Dashboard', icon: 'ti-layout-dashboard' },
   { to: '/learn', label: 'Learning Plan', icon: 'ti-books' },
+  { to: '/custom-path', label: 'My Paths', icon: 'ti-route' },
   { to: '/tasks', label: 'Tasks', icon: 'ti-checkbox' },
 ]
 

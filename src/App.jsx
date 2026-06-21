@@ -8,6 +8,8 @@ import SignupPage from './pages/SignupPage'
 import LearningPlanPage from './pages/LearningPlanPage'
 import TaskTrackerPage from './pages/TaskTrackerPage'
 import AdminPage from './pages/AdminPage'
+import ProfileSettingsPage from './pages/ProfileSettingsPage'
+import CustomPathPage from './pages/CustomPathPage'
 
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 
@@ -70,6 +72,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute adminOnly>
             <AdminPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <ProfileSettingsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/custom-path"
+        element={
+          <ProtectedRoute>
+            <CustomPathPage />
           </ProtectedRoute>
         }
       />
