@@ -21,7 +21,11 @@ function ProtectedRoute({ children, adminOnly = false }) {
   }, [adminOnly, user])
 
   if (loading) {
-    return <div>Loading...</div>
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+        <p className="text-gray-400 dark:text-gray-500 text-sm">Loading...</p>
+      </div>
+    )
   }
 
   if (!user) {
@@ -29,7 +33,11 @@ function ProtectedRoute({ children, adminOnly = false }) {
   }
 
   if (adminOnly && !roleFetched) {
-    return <div>Loading...</div>
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+        <p className="text-gray-400 dark:text-gray-500 text-sm">Loading...</p>
+      </div>
+    )
   }
 
   if (adminOnly && role !== 'admin') {

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import { getTodayIST, getDaysAgoIST } from '../lib/dateUtils'
 import { PHASE_NAMES, SIDEBAR_WIDTH } from '../lib/constants'
 import Sidebar from '../components/layout/Sidebar'
@@ -9,9 +10,9 @@ import TopBar from '../components/layout/TopBar'
 import StatCard from '../components/ui/StatCard'
 
 function getPhaseColorClasses(phase) {
-  if (phase === 1) return { bar: 'bg-blue-500', text: 'text-blue-700' }
-  if (phase === 2) return { bar: 'bg-purple-500', text: 'text-purple-700' }
-  return { bar: 'bg-orange-500', text: 'text-orange-700' }
+  if (phase === 1) return { bar: 'bg-blue-500', text: 'text-blue-700 dark:text-blue-400' }
+  if (phase === 2) return { bar: 'bg-purple-500', text: 'text-purple-700 dark:text-purple-400' }
+  return { bar: 'bg-orange-500', text: 'text-orange-700 dark:text-orange-400' }
 }
 
 function getPhaseRowBarClass(phase) {
@@ -44,6 +45,7 @@ async function loadDashboardData(userId) {
 
 function DashboardPage() {
   const { user } = useAuth()
+  const { resolvedTheme } = useTheme()
   const [topics, setTopics] = useState([])
   const [completedTopicIds, setCompletedTopicIds] = useState(new Set())
   const [tasks, setTasks] = useState([])
@@ -80,15 +82,16 @@ function DashboardPage() {
       <>
         <Sidebar />
         <div
-          className="min-h-screen bg-gray-50 flex items-center justify-center"
+          className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center"
           style={{ marginLeft: SIDEBAR_WIDTH }}
         >
-          <p className="text-gray-400 text-sm">Loading dashboard...</p>
+          <p className="text-gray-400 dark:text-gray-500 text-sm">Loading dashboard...</p>
         </div>
       </>
     )
   }
 
+  const isDark = resolvedTheme === 'dark'
   const today = getTodayIST()
 
   const totalTopics = topics.length
@@ -157,7 +160,7 @@ function DashboardPage() {
   return (
     <>
       <Sidebar />
-      <div className="min-h-screen bg-gray-50" style={{ marginLeft: SIDEBAR_WIDTH }}>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950" style={{ marginLeft: SIDEBAR_WIDTH }}>
         <TopBar title="Dashboard" />
         <div className="px-8 py-6">
           <div className="grid grid-cols-4 gap-4 mb-8">
@@ -166,39 +169,41 @@ function DashboardPage() {
               value={`${completedCount} / ${totalTopics}`}
               subtext={`${completionPct}% complete`}
               icon="ti-books"
-              iconColorClass="bg-blue-50 text-blue-600"
+              iconColorClass="bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400"
             />
             <StatCard
               label="Today's Tasks"
               value={`${todaysDoneCount} done / ${todaysLogs.length} total`}
               subtext={`${todaysPendingCount} pending`}
               icon="ti-check"
-              iconColorClass="bg-green-50 text-green-600"
+              iconColorClass="bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400"
             />
             <StatCard
               label="Best Streak"
               value={`${bestStreak.current_streak} days`}
               subtext={bestStreakTaskName ?? 'No streaks yet'}
               icon="ti-flame"
-              iconColorClass="bg-orange-50 text-orange-500"
+              iconColorClass="bg-orange-50 dark:bg-orange-500/10 text-orange-500 dark:text-orange-400"
             />
             <StatCard
               label="This Week"
               value={`${weekYesCount} tasks done`}
               subtext="in the last 7 days"
               icon="ti-chart-bar"
-              iconColorClass="bg-purple-50 text-purple-600"
+              iconColorClass="bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400"
             />
           </div>
-  
-          <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
+
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
-              <p className="text-base font-semibold text-gray-900">Learning Plan</p>
-              <span className="bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-full">
+              <p className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                Learning Plan
+              </p>
+              <span className="bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 text-sm px-3 py-1 rounded-full">
                 {completedCount} of {totalTopics} complete
               </span>
             </div>
-  
+
             <div>
               {phaseStats.map((p, index) => {
                 const pct = p.total ? Math.round((p.completed / p.total) * 100) : 0
@@ -209,72 +214,97 @@ function DashboardPage() {
                     className={
                       isLast
                         ? 'flex items-center gap-4 py-3'
-                        : 'flex items-center gap-4 py-3 border-b border-gray-50'
+                        : 'flex items-center gap-4 py-3 border-b border-gray-50 dark:border-gray-800'
                     }
                   >
-                    <span className="text-sm font-medium w-48 flex-shrink-0">
+                    <span className="text-sm font-medium w-48 flex-shrink-0 text-gray-700 dark:text-gray-300">
                       {PHASE_NAMES[p.phase] ?? `Phase ${p.phase}`}
                     </span>
-                    <span className="text-xs text-gray-400 w-20 flex-shrink-0">
+                    <span className="text-xs text-gray-400 dark:text-gray-500 w-20 flex-shrink-0">
                       {p.completed}/{p.total} topics
                     </span>
-                    <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
+                    <div className="flex-1 bg-gray-100 dark:bg-gray-800 h-2 rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full ${getPhaseRowBarClass(p.phase)}`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
-                    <span className="text-sm font-medium text-gray-700 w-10 text-right">{pct}%</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 w-10 text-right">
+                      {pct}%
+                    </span>
                   </div>
                 )
               })}
             </div>
           </div>
-  
+
           <div className="grid grid-cols-2 gap-6 mb-6">
-            <div className="bg-white rounded-xl border border-gray-100 p-6">
+            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-6">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-base font-semibold text-gray-900">This week</p>
-                <span className="bg-green-50 text-green-700 text-sm px-3 py-1 rounded-full">
+                <p className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                  This week
+                </p>
+                <span className="bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 text-sm px-3 py-1 rounded-full">
                   {weekCompletionRate}% completion
                 </span>
               </div>
               <ResponsiveContainer width="100%" height={160}>
                 <BarChart data={last7Days}>
-                  <XAxis dataKey="label" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
                   <Tooltip
-                    cursor={{ fill: '#f3f4f6' }}
+                    cursor={{ fill: isDark ? 'rgba(255,255,255,0.06)' : '#f3f4f6' }}
                     contentStyle={{
                       borderRadius: 8,
-                      border: '1px solid #e5e7eb',
+                      border: isDark ? '1px solid #374151' : '1px solid #e5e7eb',
+                      backgroundColor: isDark ? '#1f2937' : '#ffffff',
+                      color: isDark ? '#f3f4f6' : '#111827',
                       fontSize: 12,
                     }}
                   />
-                  <Bar dataKey="count" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="count" fill={isDark ? '#818cf8' : '#6366f1'} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
-              <p className="text-sm text-gray-500 mt-4">{weekYesCount} tasks completed this week</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+                {weekYesCount} tasks completed this week
+              </p>
             </div>
-  
-            <div className="bg-white rounded-xl border border-gray-100 p-6">
-              <p className="text-base font-semibold text-gray-900 mb-4">Streaks</p>
+
+            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-6">
+              <p className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                Streaks
+              </p>
               {streakList.length === 0 ? (
-                <p className="text-sm text-gray-400">Complete tasks daily to build streaks 🔥</p>
+                <p className="text-sm text-gray-400 dark:text-gray-500">
+                  Complete tasks daily to build streaks 🔥
+                </p>
               ) : (
                 <div>
                   {streakList.map((s, index) => {
                     const barPct = Math.min(100, (s.current_streak / maxLongestStreak) * 100)
                     const isLast = index === streakList.length - 1
                     return (
-                      <div key={s.id} className={isLast ? 'py-3' : 'py-3 border-b border-gray-50'}>
+                      <div
+                        key={s.id}
+                        className={isLast ? 'py-3' : 'py-3 border-b border-gray-50 dark:border-gray-800'}
+                      >
                         <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-sm font-medium text-gray-900">{s.taskName}</span>
-                          <span className="text-sm text-gray-500 whitespace-nowrap">
-                            🔥 <span className="text-orange-500 font-medium">{s.current_streak}</span>{' '}
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {s.taskName}
+                          </span>
+                          <span className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                            🔥{' '}
+                            <span className="text-orange-500 dark:text-orange-400 font-medium">
+                              {s.current_streak}
+                            </span>{' '}
                             days
                           </span>
                         </div>
-                        <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-orange-400 rounded-full"
                             style={{ width: `${barPct}%` }}
@@ -287,9 +317,11 @@ function DashboardPage() {
               )}
             </div>
           </div>
-  
-          <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
-            <p className="text-base font-semibold text-gray-900 mb-4">Phase breakdown</p>
+
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-6 mb-6">
+            <p className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              Phase breakdown
+            </p>
             <div className="grid grid-cols-3 gap-6">
               {phaseStats.map((p) => {
                 const colors = getPhaseColorClasses(p.phase)
@@ -300,31 +332,31 @@ function DashboardPage() {
                       <span className={`text-sm font-semibold ${colors.text}`}>
                         {PHASE_NAMES[p.phase] ?? `Phase ${p.phase}`}
                       </span>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
                         {p.completed}/{p.total}
                       </span>
                     </div>
                     <p className={`text-4xl font-bold ${colors.text}`}>{pct}%</p>
-                    <p className="text-sm text-gray-500 mb-3">complete</p>
-                    <p className="text-xs text-gray-400 mb-3">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">complete</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
                       {p.mandatoryCompleted} mandatory · {p.optionalCompleted} optional
                     </p>
-                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                       <div className={`h-full rounded-full ${colors.bar}`} style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 )
               })}
             </div>
-  
+
             {lastCompletedTopics.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <p className="text-xs text-gray-400 mb-2">Recently completed</p>
+              <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">Recently completed</p>
                 <div className="flex flex-col gap-1.5">
                   {lastCompletedTopics.map((topic) => (
                     <div key={topic.id} className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">{topic.title}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{topic.title}</span>
                     </div>
                   ))}
                 </div>

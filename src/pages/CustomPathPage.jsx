@@ -17,45 +17,53 @@ function TopicFormFields({ form, setForm }) {
   return (
     <>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Title
+        </label>
         <input
           type="text"
           required
           value={form.title}
           onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-          className="w-full border border-gray-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+          className="w-full border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg py-2 px-3 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Key Terms</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Key Terms
+        </label>
         <input
           type="text"
           placeholder="comma, separated, terms"
           value={form.keyTerms}
           onChange={(e) => setForm((prev) => ({ ...prev, keyTerms: e.target.value }))}
-          className="w-full border border-gray-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+          className="w-full border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg py-2 px-3 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Learning Outcomes</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Learning Outcomes
+        </label>
         <textarea
           rows={2}
           value={form.learningOutcomes}
           onChange={(e) => setForm((prev) => ({ ...prev, learningOutcomes: e.target.value }))}
-          className="w-full border border-gray-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+          className="w-full border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg py-2 px-3 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Resource URL</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Resource URL
+        </label>
         <input
           type="text"
           placeholder="https://..."
           value={form.resourceUrl}
           onChange={(e) => setForm((prev) => ({ ...prev, resourceUrl: e.target.value }))}
-          className="w-full border border-gray-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+          className="w-full border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg py-2 px-3 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
         />
       </div>
     </>
@@ -64,8 +72,11 @@ function TopicFormFields({ form, setForm }) {
 
 function TopicForm({ form, setForm, onSubmit, onCancel, isEditing }) {
   return (
-    <form onSubmit={onSubmit} className="bg-gray-50 border border-gray-200 rounded-lg p-5 mb-4">
-      <h3 className="text-sm font-semibold text-gray-700 mb-3">
+    <form
+      onSubmit={onSubmit}
+      className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-5 mb-4"
+    >
+      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
         {isEditing ? 'Edit topic' : 'Add new topic'}
       </h3>
 
@@ -76,14 +87,14 @@ function TopicForm({ form, setForm, onSubmit, onCancel, isEditing }) {
       <div className="flex gap-3 mt-2">
         <button
           type="submit"
-          className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800"
+          className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200"
         >
           {isEditing ? 'Save changes' : 'Add topic'}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="border border-gray-300 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-50"
+          className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
         >
           Cancel
         </button>
@@ -94,12 +105,19 @@ function TopicForm({ form, setForm, onSubmit, onCancel, isEditing }) {
 
 function NewPathForm({ pathName, setPathName, form, setForm, onSubmit, onCancel }) {
   return (
-    <form onSubmit={onSubmit} className="bg-gray-50 border border-gray-200 rounded-lg p-5 mb-6">
-      <h3 className="text-sm font-semibold text-gray-700 mb-3">Create new path</h3>
+    <form
+      onSubmit={onSubmit}
+      className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-5 mb-6"
+    >
+      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+        Create new path
+      </h3>
 
       <div className="space-y-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Path name</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Path name
+          </label>
           <input
             type="text"
             autoFocus
@@ -107,7 +125,7 @@ function NewPathForm({ pathName, setPathName, form, setForm, onSubmit, onCancel 
             placeholder="e.g. Rust Basics"
             value={pathName}
             onChange={(e) => setPathName(e.target.value)}
-            className="w-full border border-gray-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+            className="w-full border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg py-2 px-3 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
           />
         </div>
 
@@ -117,14 +135,14 @@ function NewPathForm({ pathName, setPathName, form, setForm, onSubmit, onCancel 
       <div className="flex gap-3 mt-2">
         <button
           type="submit"
-          className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800"
+          className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200"
         >
           Create path
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="border border-gray-300 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-50"
+          className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
         >
           Cancel
         </button>
@@ -142,8 +160,8 @@ function CustomTopicCard({ topic, isLast, onToggleComplete, onEdit, onDelete }) 
     <div
       className={
         isLast
-          ? 'bg-white border border-gray-100 rounded-lg p-4 flex items-start gap-3'
-          : 'bg-white border border-gray-100 rounded-lg p-4 mb-3 flex items-start gap-3'
+          ? 'bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-lg p-4 flex items-start gap-3'
+          : 'bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-lg p-4 mb-3 flex items-start gap-3'
       }
     >
       <button onClick={onToggleComplete} className="flex-shrink-0 mt-0.5">
@@ -152,7 +170,7 @@ function CustomTopicCard({ topic, isLast, onToggleComplete, onEdit, onDelete }) 
             ✓
           </span>
         ) : (
-          <span className="h-5 w-5 rounded-full border border-gray-300 block" />
+          <span className="h-5 w-5 rounded-full border border-gray-300 dark:border-gray-600 block" />
         )}
       </button>
 
@@ -160,8 +178,8 @@ function CustomTopicCard({ topic, isLast, onToggleComplete, onEdit, onDelete }) 
         <p
           className={
             topic.is_completed
-              ? 'font-medium text-gray-400 line-through mb-1'
-              : 'font-medium text-gray-900 mb-1'
+              ? 'font-medium text-gray-400 dark:text-gray-500 line-through mb-1'
+              : 'font-medium text-gray-900 dark:text-gray-100 mb-1'
           }
         >
           {topic.title}
@@ -172,7 +190,7 @@ function CustomTopicCard({ topic, isLast, onToggleComplete, onEdit, onDelete }) 
             {keyTerms.map((term) => (
               <span
                 key={term}
-                className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md"
+                className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-md"
               >
                 {term}
               </span>
@@ -181,7 +199,9 @@ function CustomTopicCard({ topic, isLast, onToggleComplete, onEdit, onDelete }) 
         )}
 
         {topic.learning_outcomes && (
-          <p className="text-sm text-gray-500 mb-2">{topic.learning_outcomes}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+            {topic.learning_outcomes}
+          </p>
         )}
 
         {topic.resource_url && (
@@ -189,7 +209,7 @@ function CustomTopicCard({ topic, isLast, onToggleComplete, onEdit, onDelete }) 
             href={topic.resource_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 mt-1 text-xs font-medium border border-gray-300 rounded-md px-3 py-1.5 text-gray-700 hover:bg-gray-50"
+            className="inline-flex items-center gap-1.5 mt-1 text-xs font-medium border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1.5 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
           >
             <i className="ti ti-external-link text-sm" />
             Open Resource
@@ -200,13 +220,13 @@ function CustomTopicCard({ topic, isLast, onToggleComplete, onEdit, onDelete }) 
       <div className="flex items-center gap-2 shrink-0">
         <button
           onClick={onEdit}
-          className="text-gray-400 hover:text-gray-700 p-1.5 rounded hover:bg-gray-50"
+          className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 p-1.5 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
         >
           <i className="ti ti-edit text-base" />
         </button>
         <button
           onClick={onDelete}
-          className="text-gray-400 hover:text-red-500 p-1.5 rounded hover:bg-gray-50"
+          className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 p-1.5 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
         >
           <i className="ti ti-trash text-base" />
         </button>
@@ -233,23 +253,23 @@ function PathSection({
   const isFormOpenHere = activeForm?.pathName === pathName
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-6 mb-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">{pathName}</h2>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{pathName}</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             {completedCount} of {topics.length} complete
           </p>
         </div>
         <button
           onClick={() => onAddTopic(pathName)}
-          className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800"
+          className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200"
         >
           Add Topic
         </button>
       </div>
 
-      <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden mt-3 mb-6">
+      <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mt-3 mb-6">
         <div className="h-full bg-blue-500 rounded-full" style={{ width: `${pct}%` }} />
       </div>
 
@@ -465,10 +485,10 @@ function CustomPathPage() {
       <>
         <Sidebar />
         <div
-          className="min-h-screen bg-gray-50 flex items-center justify-center"
+          className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center"
           style={{ marginLeft: SIDEBAR_WIDTH }}
         >
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-gray-900" />
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 dark:border-gray-700 border-t-gray-900 dark:border-t-gray-100" />
         </div>
       </>
     )
@@ -486,20 +506,22 @@ function CustomPathPage() {
   return (
     <>
       <Sidebar />
-      <div className="min-h-screen bg-gray-50" style={{ marginLeft: SIDEBAR_WIDTH }}>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950" style={{ marginLeft: SIDEBAR_WIDTH }}>
         <TopBar title="My Learning Paths" />
 
         <main className="px-8 py-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">My Learning Paths</h1>
-              <p className="text-gray-500 mt-1">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                My Learning Paths
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">
                 Create your own topics and track progress your way
               </p>
             </div>
             <button
               onClick={handleClickNewPath}
-              className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800"
+              className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200"
             >
               New Path
             </button>
@@ -518,13 +540,13 @@ function CustomPathPage() {
 
           {pathNames.length === 0 && !showNewPathForm ? (
             <div className="text-center py-20">
-              <i className="ti ti-route text-4xl text-gray-300 mb-3 inline-block" />
-              <p className="text-gray-400 text-sm mb-4">
+              <i className="ti ti-route text-4xl text-gray-300 dark:text-gray-700 mb-3 inline-block" />
+              <p className="text-gray-400 dark:text-gray-500 text-sm mb-4">
                 You haven't created any custom paths yet
               </p>
               <button
                 onClick={handleClickNewPath}
-                className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800"
+                className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200"
               >
                 Create your first path
               </button>

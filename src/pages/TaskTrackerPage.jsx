@@ -87,10 +87,10 @@ function getPriorityAccentClass(priority) {
 function PriorityBadge({ priority }) {
   const classes =
     priority === 'high'
-      ? 'bg-red-100 text-red-700'
+      ? 'bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-400'
       : priority === 'medium'
-        ? 'bg-yellow-100 text-yellow-700'
-        : 'bg-blue-100 text-blue-700'
+        ? 'bg-yellow-100 dark:bg-yellow-500/10 text-yellow-700 dark:text-yellow-400'
+        : 'bg-blue-100 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400'
   return (
     <span className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${classes}`}>
       {priority}
@@ -101,30 +101,34 @@ function PriorityBadge({ priority }) {
 function TaskCard({ task, status, streak, onMark, isMarking }) {
   return (
     <div
-      className={`bg-white border border-gray-200 rounded-xl p-5 mb-3 w-full flex items-start justify-between gap-4 ${getPriorityAccentClass(task.priority)}`}
+      className={`bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-5 mb-3 w-full flex items-start justify-between gap-4 ${getPriorityAccentClass(task.priority)}`}
     >
       <div className="min-w-0">
-        <p className="text-base font-semibold text-gray-900">{task.name}</p>
+        <p className="text-base font-semibold text-gray-900 dark:text-gray-100">{task.name}</p>
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
             {task.schedule_type === 'goal' ? 'Goal-based' : 'Daily'}
           </span>
           {task.schedule_type === 'goal' && task.end_date && (
-            <span className="text-xs text-gray-500">Ends {task.end_date}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">Ends {task.end_date}</span>
           )}
         </div>
-        {task.notes && <p className="text-xs text-gray-500 mt-1">{task.notes}</p>}
+        {task.notes && (
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{task.notes}</p>
+        )}
       </div>
 
       <div className="flex items-center gap-3 shrink-0">
-        <span className="text-sm text-gray-600 whitespace-nowrap">🔥 {streak} day streak</span>
+        <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+          🔥 {streak} day streak
+        </span>
         <button
           onClick={() => onMark('yes')}
           disabled={isMarking}
           className={
             status === 'yes'
               ? 'text-sm font-medium px-5 py-2 rounded-md border bg-green-500 text-white border-green-500 disabled:opacity-50'
-              : 'text-sm font-medium px-5 py-2 rounded-md border bg-white text-green-600 border-green-500 hover:bg-green-50 disabled:opacity-50'
+              : 'text-sm font-medium px-5 py-2 rounded-md border bg-white dark:bg-gray-900 text-green-600 dark:text-green-400 border-green-500 hover:bg-green-50 dark:hover:bg-green-500/10 disabled:opacity-50'
           }
         >
           Yes
@@ -135,7 +139,7 @@ function TaskCard({ task, status, streak, onMark, isMarking }) {
           className={
             status === 'no'
               ? 'text-sm font-medium px-5 py-2 rounded-md border bg-red-500 text-white border-red-500 disabled:opacity-50'
-              : 'text-sm font-medium px-5 py-2 rounded-md border bg-white text-red-600 border-red-500 hover:bg-red-50 disabled:opacity-50'
+              : 'text-sm font-medium px-5 py-2 rounded-md border bg-white dark:bg-gray-900 text-red-600 dark:text-red-400 border-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 disabled:opacity-50'
           }
         >
           No
@@ -149,38 +153,46 @@ function TaskForm({ form, setForm, editingTask, onToggleExcludedDay, onSubmit, o
   return (
     <form
       onSubmit={onSubmit}
-      className="bg-white border border-gray-200 rounded-xl p-6 mb-6 flex flex-col gap-4"
+      className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-6 mb-6 flex flex-col gap-4"
     >
-      <h2 className="text-lg font-bold text-gray-900">{editingTask ? 'Edit Task' : 'New Task'}</h2>
+      <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+        {editingTask ? 'Edit Task' : 'New Task'}
+      </h2>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Task name</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Task name
+        </label>
         <input
           type="text"
           required
           value={form.name}
           onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-400"
+          className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Notes
+        </label>
         <textarea
           value={form.notes}
           onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
           rows={2}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-400"
+          className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
         />
       </div>
 
       <div className="flex gap-4">
         <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Priority
+          </label>
           <select
             value={form.priority}
             onChange={(e) => setForm((prev) => ({ ...prev, priority: e.target.value }))}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-400"
+            className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
           >
             <option value="high">High</option>
             <option value="medium">Medium</option>
@@ -189,11 +201,13 @@ function TaskForm({ form, setForm, editingTask, onToggleExcludedDay, onSubmit, o
         </div>
 
         <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Schedule type</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Schedule type
+          </label>
           <select
             value={form.scheduleType}
             onChange={(e) => setForm((prev) => ({ ...prev, scheduleType: e.target.value }))}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-400"
+            className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
           >
             <option value="daily">Daily</option>
             <option value="goal">Goal-based</option>
@@ -204,33 +218,39 @@ function TaskForm({ form, setForm, editingTask, onToggleExcludedDay, onSubmit, o
       {form.scheduleType === 'goal' && (
         <div className="flex gap-4">
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Start date</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Start date
+            </label>
             <input
               type="date"
               value={form.startDate}
               onChange={(e) => setForm((prev) => ({ ...prev, startDate: e.target.value }))}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
             />
           </div>
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">End date</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              End date
+            </label>
             <input
               type="date"
               value={form.endDate}
               onChange={(e) => setForm((prev) => ({ ...prev, endDate: e.target.value }))}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
             />
           </div>
         </div>
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Exclude days</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Exclude days
+        </label>
         <div className="flex gap-3">
           {DAY_LABELS.map((label, index) => (
             <label
               key={label}
-              className="flex flex-col items-center gap-1 text-xs text-gray-600 cursor-pointer"
+              className="flex flex-col items-center gap-1 text-xs text-gray-600 dark:text-gray-400 cursor-pointer"
             >
               <input
                 type="checkbox"
@@ -254,7 +274,7 @@ function TaskForm({ form, setForm, editingTask, onToggleExcludedDay, onSubmit, o
         />
         <label
           htmlFor="reminderEnabled"
-          className="text-sm font-medium text-gray-700 cursor-pointer"
+          className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
         >
           Enable email reminder
         </label>
@@ -262,12 +282,14 @@ function TaskForm({ form, setForm, editingTask, onToggleExcludedDay, onSubmit, o
 
       {form.reminderEnabled && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Reminder time</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Reminder time
+          </label>
           <input
             type="time"
             value={form.reminderTime}
             onChange={(e) => setForm((prev) => ({ ...prev, reminderTime: e.target.value }))}
-            className="w-full max-w-[200px] rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-400"
+            className="w-full max-w-[200px] rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
           />
         </div>
       )}
@@ -275,14 +297,14 @@ function TaskForm({ form, setForm, editingTask, onToggleExcludedDay, onSubmit, o
       <div className="flex gap-3 mt-2">
         <button
           type="submit"
-          className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-gray-800"
+          className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium px-4 py-2 rounded-md hover:bg-gray-800 dark:hover:bg-gray-200"
         >
           Save
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="border border-gray-300 text-gray-700 text-sm font-medium px-4 py-2 rounded-md hover:bg-gray-50"
+          className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium px-4 py-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800"
         >
           Cancel
         </button>
@@ -538,10 +560,10 @@ function TaskTrackerPage() {
       <>
         <Sidebar />
         <div
-          className="min-h-screen bg-gray-50 flex items-center justify-center"
+          className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center"
           style={{ marginLeft: SIDEBAR_WIDTH }}
         >
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-gray-900" />
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 dark:border-gray-700 border-t-gray-900 dark:border-t-gray-100" />
         </div>
       </>
     )
@@ -558,7 +580,7 @@ function TaskTrackerPage() {
   return (
     <>
       <Sidebar />
-      <div className="min-h-screen bg-gray-50" style={{ marginLeft: SIDEBAR_WIDTH }}>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950" style={{ marginLeft: SIDEBAR_WIDTH }}>
         <TopBar title="Task Tracker" />
 
         <main className="px-8 py-6">
@@ -567,8 +589,8 @@ function TaskTrackerPage() {
               onClick={() => setView('daily')}
               className={
                 view === 'daily'
-                  ? 'text-sm font-medium px-4 py-2 rounded-md bg-gray-900 text-white'
-                  : 'text-sm font-medium px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50'
+                  ? 'text-sm font-medium px-4 py-2 rounded-md bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
+                  : 'text-sm font-medium px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
               }
             >
               Today's Tasks
@@ -577,8 +599,8 @@ function TaskTrackerPage() {
               onClick={() => setView('manage')}
               className={
                 view === 'manage'
-                  ? 'text-sm font-medium px-4 py-2 rounded-md bg-gray-900 text-white'
-                  : 'text-sm font-medium px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50'
+                  ? 'text-sm font-medium px-4 py-2 rounded-md bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
+                  : 'text-sm font-medium px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
               }
             >
               All Tasks
@@ -588,33 +610,37 @@ function TaskTrackerPage() {
           {view === 'daily' && (
             <div>
               <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Today's Tasks</h1>
-                <p className="text-gray-500 mt-1">{formatTodayLong()}</p>
-  
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  Today's Tasks
+                </h1>
+                <p className="text-gray-500 dark:text-gray-400 mt-1">{formatTodayLong()}</p>
+
                 {tasks.length > 0 && (
                   <>
-                    <p className="text-sm text-gray-600 mt-3">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-3">
                       {doneCount} of {visibleTasks.length} tasks done today
                     </p>
-                    <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mt-2">
+                    <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden mt-2">
                       <div
-                        className="h-full bg-gray-900 rounded-full transition-all"
+                        className="h-full bg-gray-900 dark:bg-gray-100 rounded-full transition-all"
                         style={{ width: `${progressPct}%` }}
                       />
                     </div>
                   </>
                 )}
               </div>
-  
+
               {tasks.length === 0 ? (
                 <div className="text-center py-16">
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-400 dark:text-gray-500 text-sm">
                     No tasks yet. Click 'All Tasks' to create your first task.
                   </p>
                 </div>
               ) : visibleTasks.length === 0 ? (
                 <div className="text-center py-16">
-                  <p className="text-gray-400 text-sm">Nothing scheduled for today.</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-sm">
+                    Nothing scheduled for today.
+                  </p>
                 </div>
               ) : (
                 <div>
@@ -630,20 +656,20 @@ function TaskTrackerPage() {
                   ))}
                 </div>
               )}
-  
+
               {visibleTasks.length > 0 && (
                 <div className="mt-8">
-                  <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
+                  <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">
                     Daily Progress
                   </h2>
                   <div className="flex gap-3">
-                    <span className="text-sm font-medium px-3 py-1.5 rounded-full bg-green-100 text-green-700">
+                    <span className="text-sm font-medium px-3 py-1.5 rounded-full bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400">
                       {doneCount} completed
                     </span>
-                    <span className="text-sm font-medium px-3 py-1.5 rounded-full bg-red-100 text-red-700">
+                    <span className="text-sm font-medium px-3 py-1.5 rounded-full bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-400">
                       {notDoneCount} not done
                     </span>
-                    <span className="text-sm font-medium px-3 py-1.5 rounded-full bg-gray-100 text-gray-600">
+                    <span className="text-sm font-medium px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
                       {pendingCount} pending
                     </span>
                   </div>
@@ -651,19 +677,19 @@ function TaskTrackerPage() {
               )}
             </div>
           )}
-  
+
           {view === 'manage' && (
             <div>
               <div className="flex items-center justify-between mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">All Tasks</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">All Tasks</h1>
                 <button
                   onClick={openCreateForm}
-                  className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-gray-800"
+                  className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium px-4 py-2 rounded-md hover:bg-gray-800 dark:hover:bg-gray-200"
                 >
                   New Task
                 </button>
               </div>
-  
+
               {showCreateForm && (
                 <TaskForm
                   form={form}
@@ -674,33 +700,35 @@ function TaskTrackerPage() {
                   onCancel={closeForm}
                 />
               )}
-  
-              <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">
+
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl divide-y divide-gray-100 dark:divide-gray-800">
                 {tasks.map((task) => (
                   <div
                     key={task.id}
                     className={`flex items-center justify-between gap-4 px-4 py-3 ${getPriorityAccentClass(task.priority)}`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">{task.name}</p>
+                      <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                        {task.name}
+                      </p>
                       <PriorityBadge priority={task.priority} />
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
                         {task.schedule_type === 'goal' ? 'Goal-based' : 'Daily'}
                       </span>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
                         {new Date(task.created_at).toLocaleDateString()}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <button
                         onClick={() => openEditForm(task)}
-                        className="text-sm font-medium text-gray-600 hover:text-gray-900 px-2 py-1"
+                        className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 px-2 py-1"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDeleteTask(task.id)}
-                        className="text-sm font-medium text-red-600 hover:text-red-700 px-2 py-1"
+                        className="text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 px-2 py-1"
                       >
                         Delete
                       </button>
@@ -708,7 +736,9 @@ function TaskTrackerPage() {
                   </div>
                 ))}
                 {tasks.length === 0 && (
-                  <p className="text-sm text-gray-400 px-4 py-6 text-center">No tasks yet.</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 px-4 py-6 text-center">
+                    No tasks yet.
+                  </p>
                 )}
               </div>
             </div>

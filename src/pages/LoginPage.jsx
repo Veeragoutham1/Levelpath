@@ -58,14 +58,19 @@ function LoginPage() {
         </div>
       </div>
 
-      <div className="flex-1 bg-white flex items-center justify-center">
+      <div className="flex-1 bg-white dark:bg-gray-900 flex items-center justify-center">
         <div className="max-w-sm w-full px-8">
-          <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
-          <p className="text-gray-500 text-sm mt-1 mb-8">Sign in to your account</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Welcome back</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1 mb-8">
+            Sign in to your account
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="text-sm font-medium text-gray-700 mb-1 block">
+              <label
+                htmlFor="email"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block"
+              >
                 Email
               </label>
               <input
@@ -74,12 +79,15 @@ function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full border border-gray-200 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                className="w-full border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg py-2.5 px-3 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-400 focus:border-transparent"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="text-sm font-medium text-gray-700 mb-1 block">
+              <label
+                htmlFor="password"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block"
+              >
                 Password
               </label>
               <input
@@ -88,28 +96,31 @@ function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full border border-gray-200 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                className="w-full border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg py-2.5 px-3 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-400 focus:border-transparent"
               />
             </div>
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
             <button
               type="submit"
               disabled={loading}
               className={
                 loading
-                  ? 'w-full bg-gray-900 text-white py-2.5 rounded-lg font-medium mt-6 opacity-70 cursor-not-allowed'
-                  : 'w-full bg-gray-900 text-white py-2.5 rounded-lg font-medium mt-6 hover:bg-gray-700'
+                  ? 'w-full bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 py-2.5 rounded-lg font-medium mt-6 opacity-70 cursor-not-allowed'
+                  : 'w-full bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 py-2.5 rounded-lg font-medium mt-6 hover:bg-gray-700 dark:hover:bg-gray-300'
               }
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-gray-600">
+          <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
             Don't have an account?{' '}
-            <Link to="/signup" className="text-blue-600 font-medium hover:underline">
+            <Link
+              to="/signup"
+              className="text-blue-600 dark:text-blue-400 font-medium hover:underline"
+            >
               Sign up
             </Link>
           </p>

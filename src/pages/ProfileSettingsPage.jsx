@@ -21,8 +21,8 @@ function RoleBadge({ role }) {
     <span
       className={
         role === 'admin'
-          ? 'bg-gray-900 text-white text-xs px-2 py-1 rounded-full capitalize'
-          : 'bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full capitalize'
+          ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs px-2 py-1 rounded-full capitalize'
+          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs px-2 py-1 rounded-full capitalize'
       }
     >
       {role}
@@ -106,10 +106,10 @@ function ProfileSettingsPage() {
       <>
         <Sidebar />
         <div
-          className="min-h-screen bg-gray-50 flex items-center justify-center"
+          className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center"
           style={{ marginLeft: SIDEBAR_WIDTH }}
         >
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-gray-900" />
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 dark:border-gray-700 border-t-gray-900 dark:border-t-gray-100" />
         </div>
       </>
     )
@@ -120,24 +120,31 @@ function ProfileSettingsPage() {
   return (
     <>
       <Sidebar />
-      <div className="min-h-screen bg-gray-50" style={{ marginLeft: SIDEBAR_WIDTH }}>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950" style={{ marginLeft: SIDEBAR_WIDTH }}>
         <TopBar title="Profile Settings" />
 
         <main className="px-8 py-6">
-          <div className="max-w-2xl mx-auto bg-white rounded-xl border border-gray-200 p-8">
+          <div className="max-w-2xl mx-auto bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-8">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Profile Information</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                Profile Information
+              </h2>
 
               <div className="flex flex-col items-center mb-6">
-                <span className="h-16 w-16 rounded-full bg-gray-900 text-white text-2xl font-semibold flex items-center justify-center">
+                <span className="h-16 w-16 rounded-full bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-100 text-2xl font-semibold flex items-center justify-center">
                   {initial}
                 </span>
-                <p className="text-xs text-gray-400 mt-2">Profile picture coming soon</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                  Profile picture coming soon
+                </p>
               </div>
 
               <form onSubmit={handleSaveProfile} className="space-y-4">
                 <div>
-                  <label htmlFor="fullName" className="text-sm font-medium text-gray-700 mb-1 block">
+                  <label
+                    htmlFor="fullName"
+                    className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block"
+                  >
                     Full name
                   </label>
                   <input
@@ -145,12 +152,15 @@ function ProfileSettingsPage() {
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                    className="w-full border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg py-2.5 px-3 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-400 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="text-sm font-medium text-gray-700 mb-1 block">
+                  <label
+                    htmlFor="email"
+                    className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block"
+                  >
                     Email
                   </label>
                   <input
@@ -158,29 +168,33 @@ function ProfileSettingsPage() {
                     type="email"
                     value={user?.email ?? ''}
                     readOnly
-                    className="w-full border border-gray-200 rounded-lg py-2.5 px-3 text-sm bg-gray-50 text-gray-500"
+                    className="w-full border border-gray-200 dark:border-gray-700 rounded-lg py-2.5 px-3 text-sm bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
                   />
-                  <p className="text-xs text-gray-400 mt-1">Email cannot be changed</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                    Email cannot be changed
+                  </p>
                 </div>
 
                 <button
                   type="submit"
                   disabled={savingProfile}
-                  className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 disabled:opacity-50"
+                  className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50"
                 >
                   {savingProfile ? 'Saving...' : 'Save changes'}
                 </button>
               </form>
             </div>
 
-            <div className="mt-8 pt-8 border-t border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Reminder Preferences</h2>
+            <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                Reminder Preferences
+              </h2>
 
               <form onSubmit={handleSaveReminder} className="space-y-4">
                 <div>
                   <label
                     htmlFor="reminderTime"
-                    className="text-sm font-medium text-gray-700 mb-1 block"
+                    className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block"
                   >
                     Default reminder time
                   </label>
@@ -189,42 +203,47 @@ function ProfileSettingsPage() {
                     type="time"
                     value={reminderTime}
                     onChange={(e) => setReminderTime(e.target.value)}
-                    className="w-full max-w-[200px] border border-gray-200 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                    className="w-full max-w-[200px] border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg py-2.5 px-3 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-400 focus:border-transparent"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    This is your default reminder time for new tasks. You can override it per task.
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    This is your default reminder time for new tasks. You can override it per
+                    task.
                   </p>
                 </div>
 
                 <button
                   type="submit"
                   disabled={savingReminder}
-                  className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 disabled:opacity-50"
+                  className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50"
                 >
                   {savingReminder ? 'Saving...' : 'Save preferences'}
                 </button>
               </form>
             </div>
 
-            <div className="mt-8 pt-8 border-t border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Account</h2>
-              <p className="text-sm text-gray-600 mb-2">
+            <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                Account
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                 Member since {formatMemberSince(profile?.created_at)}
               </p>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Role:</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Role:</span>
                 <RoleBadge role={profile?.role ?? 'user'} />
               </div>
             </div>
 
-            <div className="mt-8 pt-8 border-t border-gray-200">
-              <h2 className="text-lg font-semibold text-red-600 mb-4">Danger Zone</h2>
-              <p className="text-sm text-gray-500 mb-4">
+            <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-4">
+                Danger Zone
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                 Signing out will end your current session.
               </p>
               <button
                 onClick={handleSignOut}
-                className="border border-red-300 text-red-600 text-sm font-medium px-4 py-2 rounded-lg hover:bg-red-50"
+                className="border border-red-300 dark:border-red-500/30 text-red-600 dark:text-red-400 text-sm font-medium px-4 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10"
               >
                 Sign out
               </button>

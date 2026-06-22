@@ -27,9 +27,9 @@ function formatTimeAgo(timestamp) {
 }
 
 function getPhaseBadgeClasses(phase) {
-  if (phase === 1) return 'bg-blue-50 text-blue-700'
-  if (phase === 2) return 'bg-purple-50 text-purple-700'
-  return 'bg-orange-50 text-orange-700'
+  if (phase === 1) return 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400'
+  if (phase === 2) return 'bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400'
+  return 'bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400'
 }
 
 function getPhaseBarClass(phase) {
@@ -67,8 +67,8 @@ function RoleBadge({ role }) {
     <span
       className={
         role === 'admin'
-          ? 'bg-gray-900 text-white text-xs px-2 py-1 rounded-full capitalize'
-          : 'bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full capitalize'
+          ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs px-2 py-1 rounded-full capitalize'
+          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs px-2 py-1 rounded-full capitalize'
       }
     >
       {role}
@@ -114,10 +114,10 @@ function AdminPage() {
       <>
         <Sidebar />
         <div
-          className="min-h-screen bg-gray-50 flex items-center justify-center"
+          className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center"
           style={{ marginLeft: SIDEBAR_WIDTH }}
         >
-          <p className="text-gray-400 text-sm">Loading admin panel...</p>
+          <p className="text-gray-400 dark:text-gray-500 text-sm">Loading admin panel...</p>
         </div>
       </>
     )
@@ -155,15 +155,20 @@ function AdminPage() {
   return (
     <>
       <Sidebar />
-      <div className="min-h-screen bg-gray-50 px-8 py-6" style={{ marginLeft: SIDEBAR_WIDTH }}>
+      <div
+        className="min-h-screen bg-gray-50 dark:bg-gray-950 px-8 py-6"
+        style={{ marginLeft: SIDEBAR_WIDTH }}
+      >
         <div className="mb-8">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
-            <span className="bg-red-50 text-red-600 text-xs px-2 py-1 rounded-full border border-red-200">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Admin Panel</h1>
+            <span className="bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-xs px-2 py-1 rounded-full border border-red-200 dark:border-red-500/30">
               Admin Only
             </span>
           </div>
-          <p className="text-gray-500 mt-1">Platform overview — visible to admins only</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
+            Platform overview — visible to admins only
+          </p>
         </div>
 
         <div className="grid grid-cols-4 gap-4 mb-8">
@@ -172,39 +177,41 @@ function AdminPage() {
             value={totalUsers}
             subtext="registered accounts"
             icon="ti-users"
-            iconColorClass="bg-blue-50 text-blue-600"
+            iconColorClass="bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400"
           />
           <StatCard
             label="Active Tasks"
             value={totalActiveTasks}
             subtext="across all users"
             icon="ti-checkbox"
-            iconColorClass="bg-green-50 text-green-600"
+            iconColorClass="bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400"
           />
           <StatCard
             label="Topics Done Today"
             value={topicsDoneTodayCount}
             subtext="completions today"
             icon="ti-books"
-            iconColorClass="bg-purple-50 text-purple-600"
+            iconColorClass="bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400"
           />
           <StatCard
             label="Tasks Done Today"
             value={tasksDoneTodayCount}
             subtext="marked yes today"
             icon="ti-check"
-            iconColorClass="bg-orange-50 text-orange-500"
+            iconColorClass="bg-orange-50 dark:bg-orange-500/10 text-orange-500 dark:text-orange-400"
           />
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
-          <p className="text-base font-semibold text-gray-900 mb-4">User Progress</p>
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-6 mb-6">
+          <p className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            User Progress
+          </p>
           {userRows.length === 0 ? (
-            <p className="text-sm text-gray-400">No users yet</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500">No users yet</p>
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-xs text-gray-400 uppercase tracking-wide border-b border-gray-100">
+                <tr className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide border-b border-gray-100 dark:border-gray-800">
                   <th className="text-left py-2 font-medium">User</th>
                   <th className="text-left py-2 font-medium">Role</th>
                   <th className="text-left py-2 font-medium">Topics Completed</th>
@@ -221,30 +228,40 @@ function AdminPage() {
                     <tr
                       key={row.id}
                       className={
-                        isLast ? 'hover:bg-gray-50' : 'border-b border-gray-50 hover:bg-gray-50'
+                        isLast
+                          ? 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                          : 'border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800'
                       }
                     >
                       <td className="py-3">
-                        <p className="text-gray-900 font-medium">{row.full_name}</p>
-                        <p className="text-xs text-gray-400">{row.email}</p>
+                        <p className="text-gray-900 dark:text-gray-100 font-medium">
+                          {row.full_name}
+                        </p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">{row.email}</p>
                       </td>
                       <td className="py-3">
                         <RoleBadge role={row.role} />
                       </td>
-                      <td className="py-3 text-gray-700">
+                      <td className="py-3 text-gray-700 dark:text-gray-300">
                         {row.userProgressCount} / {topics.length}
                       </td>
                       <td className="py-3">
-                        <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="w-24 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-blue-500 rounded-full"
                             style={{ width: `${row.pct}%` }}
                           />
                         </div>
                       </td>
-                      <td className="py-3 text-gray-700">{row.userTasksCount}</td>
-                      <td className="py-3 text-gray-700">{row.userTasksDoneToday}</td>
-                      <td className="py-3 text-gray-500">{formatJoinedDate(row.created_at)}</td>
+                      <td className="py-3 text-gray-700 dark:text-gray-300">
+                        {row.userTasksCount}
+                      </td>
+                      <td className="py-3 text-gray-700 dark:text-gray-300">
+                        {row.userTasksDoneToday}
+                      </td>
+                      <td className="py-3 text-gray-500 dark:text-gray-400">
+                        {formatJoinedDate(row.created_at)}
+                      </td>
                     </tr>
                   )
                 })}
@@ -254,8 +271,8 @@ function AdminPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl border border-gray-100 p-6">
-            <p className="text-base font-semibold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-6">
+            <p className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Topic Completion Across All Users
             </p>
             <div className="flex flex-col gap-3">
@@ -268,13 +285,15 @@ function AdminPage() {
                       >
                         Phase {topic.phase}
                       </span>
-                      <span className="text-sm text-gray-700 truncate">{topic.title}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                        {topic.title}
+                      </span>
                     </div>
-                    <span className="text-xs text-gray-400 flex-shrink-0 whitespace-nowrap">
+                    <span className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0 whitespace-nowrap">
                       {topic.completedByCount} users
                     </span>
                   </div>
-                  <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full ${getPhaseBarClass(topic.phase)}`}
                       style={{ width: `${topic.pct}%` }}
@@ -285,10 +304,12 @@ function AdminPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-100 p-6">
-            <p className="text-base font-semibold text-gray-900 mb-4">Recent Activity</p>
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-6">
+            <p className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              Recent Activity
+            </p>
             {recentActivity.length === 0 ? (
-              <p className="text-sm text-gray-400">No activity yet</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500">No activity yet</p>
             ) : (
               <div>
                 {recentActivity.map((row, index) => {
@@ -299,20 +320,20 @@ function AdminPage() {
                       className={
                         isLast
                           ? 'flex items-start gap-3 py-2'
-                          : 'flex items-start gap-3 py-2 border-b border-gray-50'
+                          : 'flex items-start gap-3 py-2 border-b border-gray-50 dark:border-gray-800'
                       }
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0 mt-1.5" />
-                      <p className="text-sm text-gray-700 flex-1">
-                        <span className="font-medium text-gray-900">
+                      <p className="text-sm text-gray-700 dark:text-gray-300 flex-1">
+                        <span className="font-medium text-gray-900 dark:text-gray-100">
                           {row.profiles?.full_name ?? 'Someone'}
                         </span>{' '}
                         completed{' '}
-                        <span className="font-medium text-gray-900">
+                        <span className="font-medium text-gray-900 dark:text-gray-100">
                           {row.topics?.title ?? 'a topic'}
                         </span>
                       </p>
-                      <span className="text-xs text-gray-400 whitespace-nowrap flex-shrink-0">
+                      <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap flex-shrink-0">
                         {formatTimeAgo(row.completed_at)}
                       </span>
                     </div>
