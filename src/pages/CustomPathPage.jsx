@@ -327,7 +327,10 @@ function PathTab({
         </button>
         <button
           type="button"
-          onClick={onToggleMenu}
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggleMenu()
+          }}
           className="pr-2.5 pl-0.5 py-2 opacity-0 group-hover:opacity-100 transition-opacity"
         >
           <i className="ti ti-dots text-sm" />
@@ -343,13 +346,19 @@ function PathTab({
               </p>
               <div className="flex gap-2">
                 <button
-                  onClick={onConfirmDeletePath}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onConfirmDeletePath()
+                  }}
                   className="flex-1 bg-red-500 text-white text-xs font-medium px-3 py-1.5 rounded-md hover:bg-red-600"
                 >
                   Delete
                 </button>
                 <button
-                  onClick={onCancelDeletePath}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onCancelDeletePath()
+                  }}
                   className="flex-1 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs font-medium px-3 py-1.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                   Cancel
@@ -359,14 +368,20 @@ function PathTab({
           ) : (
             <>
               <button
-                onClick={onClickRenameOption}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onClickRenameOption()
+                }}
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-left"
               >
                 <i className="ti ti-edit text-base" />
                 Rename path
               </button>
               <button
-                onClick={onClickDeleteOption}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onClickDeleteOption()
+                }}
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 text-left"
               >
                 <i className="ti ti-trash text-base" />
