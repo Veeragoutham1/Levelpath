@@ -10,22 +10,28 @@ Builder: Veera Goutham. Personal side project.
 - Charts: Recharts (v3.8.1)
 - Icons: Tabler Icons via CDN in index.html
 - Hosting: Vercel (not deployed yet)
-- Backend: Express + Railway (not built yet)
-- Email: Resend (not built yet)
+- Backend: Express.js (built, runs locally, Railway deployment pending)
+- Email: Resend (sandbox verified, domain verification needed for production)
 
 ## Project structure
 src/
 ├── pages/
-│   ├── LoginPage.jsx          ✅ complete
-│   ├── SignupPage.jsx          ✅ complete
-│   ├── LearningPlanPage.jsx    ✅ complete
-│   ├── TaskTrackerPage.jsx     ✅ complete
-│   ├── DashboardPage.jsx       ✅ complete
-│   └── AdminPage.jsx           ⏳ placeholder only
+│   ├── LoginPage.jsx              ✅ complete
+│   ├── SignupPage.jsx             ✅ complete
+│   ├── LearningPlanPage.jsx       ✅ complete
+│   ├── TaskTrackerPage.jsx        ✅ complete
+│   ├── DashboardPage.jsx          ✅ complete
+│   ├── AdminPage.jsx              ⏳ placeholder only
+│   ├── ProfileSettingsPage.jsx    ✅ complete
+│   └── CustomPathPage.jsx         ✅ complete
 ├── components/
-│   ├── ui/                     empty, for future reusable components
+│   ├── ui/
+│   │   ├── StatCard.jsx        ✅ shared stat card component
+│   │   ├── ThemeToggle.jsx     ✅ light/dark/system toggle
+│   │   └── Toast.jsx           ✅ toast notification component
 │   ├── layout/
 │   │   ├── Sidebar.jsx         ✅ complete — global nav sidebar
+│   │   ├── TopBar.jsx          ✅ complete — page header, user menu, theme toggle
 │   │   └── ProtectedRoute.jsx  ✅ complete
 │   ├── learning/               empty, for future extraction
 │   ├── tasks/                  empty, for future extraction
@@ -33,10 +39,20 @@ src/
 ├── hooks/                      empty, for future custom hooks
 ├── lib/
 │   ├── supabase.js             ✅ complete — Supabase client
+│   ├── dateUtils.js            ✅ IST-safe date utilities
+│   ├── constants.js            ✅ shared constants (PHASE_NAMES, SIDEBAR_WIDTH)
 │   └── seedTopics.sql          ✅ already run, do not run again
-├── context/
-│   └── AuthContext.jsx         ✅ complete — useAuth() hook
-└── pages/
+└── context/
+    ├── AuthContext.jsx         ✅ complete — useAuth() hook
+    ├── ThemeContext.jsx        ✅ complete — light/dark/system theme
+    └── ToastContext.jsx        ✅ complete — global toast notifications
+
+backend/
+├── server.js          ✅ Express + node-cron, endpoints /health /trigger/*
+├── supabaseAdmin.js    ✅ service role client (bypasses RLS)
+└── jobs/
+    ├── midnightReset.js     ✅ marks pending yesterday logs as missed, resets streaks
+    └── eveningReminder.js   ✅ sends 7PM email reminders via Resend
 
 ## Database tables (Supabase) — all tables exist, RLS enabled
 - profiles: id, full_name, role (user/admin), reminder_time, created_at
@@ -45,26 +61,34 @@ src/
 - tasks: id, user_id, name, notes, priority (high/medium/low), schedule_type (daily/goal), start_date, end_date, excluded_days (int[]), reminder_enabled, reminder_time, is_active, created_at
 - task_logs: id, task_id, user_id, log_date, status (pending/yes/no/missed), marked_late, marked_at — unique(task_id, log_date)
 - streaks: id, task_id, user_id, current_streak, longest_streak, last_completed_date, updated_at
+- custom_topics: id, user_id, path_name, title, key_terms, learning_outcomes, resource_url, is_completed, sort_order, created_at
 
 ## Key patterns — always follow these
 - supabase client: import { supabase } from src/lib/supabase.js
 - auth hook: import { useAuth } from src/context/AuthContext.jsx — gives { user, session, loading }
 - sidebar: import Sidebar from src/components/layout/Sidebar.jsx — add to every protected page
-- sidebar offset: add ml-[220px] to main content wrapper on every protected page
+- sidebar offset: use style={{ marginLeft: SIDEBAR_WIDTH }} from src/lib/constants.js — do NOT use ml-[220px] hardcoded class
 - Tailwind dynamic classes are PURGED — always write complete static class strings, never interpolate colors
 - All Tailwind class names must be full static strings e.g. 'bg-blue-500' not 'bg-'+color+'-500'
 - Data fetching pattern: use Promise.all for parallel fetches, always wrap in try/catch
 
 ## Feature completion status
-✅ Auth — login, signup, email confirmation OFF for dev, protected routes
-✅ Learning Plan — sidebar nav, 23 topics across 3 phases, topic detail card, mark complete, progress tracking
-✅ Task Tracker — daily view (yes/no), manage view, create/edit tasks, streaks, day exclusions
-✅ Dashboard — stat cards, learning plan progress bars, weekly chart (Recharts), streak list, phase breakdown
-✅ Navigation — global sidebar with Dashboard/Learning Plan/Tasks links, user avatar, logout
-⏳ Admin page — placeholder exists at /admin, needs to be built
-❌ Backend (Express + Railway) — not started, needed for cron jobs
-❌ Email reminders (Resend) — not started
-❌ Vercel deployment — not started, do at end
+✅ Auth — login, signup, protected routes, landing page
+✅ Learning Plan — sidebar nav, 23 topics, topic detail card, mark complete, progress tracking
+✅ Task Tracker — daily view (yes/no), manage view, create/edit tasks, streaks, day exclusions, email reminders
+✅ Dashboard — stat cards, learning plan progress, weekly chart (Recharts), streak list, phase breakdown
+✅ Navigation — global sidebar, TopBar with user dropdown and theme toggle
+✅ Admin panel — user progress table, topic completion overview, recent activity
+✅ Toast notifications — top-center, success/error/info, all actions covered
+✅ Profile Settings — editable name, reminder time, account info, danger zone
+✅ Custom Learning Paths — user-created paths, topic CRUD, progress tracking
+✅ Dark mode — light/dark/system toggle, auto-detects OS preference, persists to localStorage
+✅ Backend cron jobs — midnight reset (marks missed tasks), 7PM email reminders via Resend
+✅ Code quality — IST-safe dates, idempotent streak logic, RLS admin policies, bundle splitting, shared constants
+⏳ Backend deployment (Railway) — runs locally only, cron jobs need Railway to work 24/7
+⏳ Community feed (Twitter/X style) — Phase 2
+❌ Vercel frontend deployment — final step
+❌ Custom domain / Resend domain verification — not planned
 
 ## Planned Phase 2 features (do not build yet)
 - Community feed — Twitter/X style posts, users share links and notes, others can like
@@ -82,6 +106,8 @@ src/
 - /learn → LearningPlanPage (protected)
 - /tasks → TaskTrackerPage (protected)
 - /admin → AdminPage (protected + admin role only)
+- /settings → ProfileSettingsPage (protected)
+- /custom-path → CustomPathPage (protected)
 
 ## Topics data — already seeded, do not re-insert
 23 topics across 3 phases already exist in the topics table.
@@ -96,3 +122,11 @@ Phase 3: 8 topics (6 mandatory, 2 optional) — RAG, MCP, Deployment
 - Never install new npm packages without confirming first
 - Never run seedTopics.sql again — data already exists
 - Do not add position:fixed elements (breaks iframe layout in some contexts)
+
+## Recent technical decisions
+- Dark mode uses Tailwind v4 @custom-variant dark (&:where(.dark, .dark *)) — class-based, not media-query
+- ThemeContext: 3-state (light/dark/system), persists to localStorage key 'levelpath-theme'
+- Recharts charts use useTheme() hook for theme-aware colors since Tailwind classes can't reach SVG internals
+- RLS admin policies use is_admin() security definer function to avoid recursive policy evaluation
+- Date handling: all frontend and backend date operations use IST-safe UTC accessor methods via src/lib/dateUtils.js
+- Bundle: DashboardPage lazy-loaded via React.lazy, splits Recharts into separate chunk (~337KB)

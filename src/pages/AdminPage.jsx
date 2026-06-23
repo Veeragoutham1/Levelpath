@@ -218,7 +218,7 @@ function AdminPage() {
                   <th className="text-left py-2 font-medium">Progress</th>
                   <th className="text-left py-2 font-medium">Tasks Created</th>
                   <th className="text-left py-2 font-medium">Tasks Done Today</th>
-                  <th className="text-left py-2 font-medium">Joined</th>
+                  <th className="text-left py-2 font-medium">Member since</th>
                 </tr>
               </thead>
               <tbody>
@@ -237,7 +237,6 @@ function AdminPage() {
                         <p className="text-gray-900 dark:text-gray-100 font-medium">
                           {row.full_name}
                         </p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500">{row.email}</p>
                       </td>
                       <td className="py-3">
                         <RoleBadge role={row.role} />

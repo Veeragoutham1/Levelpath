@@ -43,7 +43,7 @@ function SignupPage() {
 
   return (
     <div className="flex flex-row h-screen">
-      <div className="hidden md:flex flex-1 bg-gray-900 text-white items-center justify-center px-12">
+      <div className="hidden md:flex flex-1 bg-gray-900 dark:bg-gray-950 text-white items-center justify-center px-12 border-r border-gray-800 dark:border-gray-700">
         <div className="max-w-sm">
           <p className="text-3xl font-bold leading-snug">
             Track your learning. Build your habits. Level up daily.

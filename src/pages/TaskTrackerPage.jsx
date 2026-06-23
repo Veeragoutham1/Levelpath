@@ -256,7 +256,7 @@ function TaskForm({ form, setForm, editingTask, onToggleExcludedDay, onSubmit, o
                 type="checkbox"
                 checked={form.excludedDays.includes(index)}
                 onChange={() => onToggleExcludedDay(index)}
-                className="h-4 w-4"
+                className="h-4 w-4 accent-gray-900 dark:accent-gray-100"
               />
               {label}
             </label>
@@ -270,7 +270,7 @@ function TaskForm({ form, setForm, editingTask, onToggleExcludedDay, onSubmit, o
           id="reminderEnabled"
           checked={form.reminderEnabled}
           onChange={(e) => setForm((prev) => ({ ...prev, reminderEnabled: e.target.checked }))}
-          className="h-4 w-4"
+          className="h-4 w-4 accent-gray-900 dark:accent-gray-100"
         />
         <label
           htmlFor="reminderEnabled"

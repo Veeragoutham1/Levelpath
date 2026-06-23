@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { to: '/learn', label: 'Learning Plan', icon: 'ti-books' },
   { to: '/custom-path', label: 'My Paths', icon: 'ti-route' },
   { to: '/tasks', label: 'Tasks', icon: 'ti-checkbox' },
+  { to: '/settings', label: 'Settings', icon: 'ti-settings' },
 ]
 
 function Sidebar() {
