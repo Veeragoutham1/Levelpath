@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -11,6 +11,12 @@ const DEFAULT_TOPIC_FORM = {
   keyTerms: '',
   learningOutcomes: '',
   resourceUrl: '',
+}
+
+function normalizeResourceUrl(value) {
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
 }
 
 function TopicFormFields({ form, setForm }) {
@@ -70,7 +76,7 @@ function TopicFormFields({ form, setForm }) {
   )
 }
 
-function TopicForm({ form, setForm, onSubmit, onCancel, isEditing }) {
+function TopicForm({ form, setForm, onSubmit, onCancel, isEditing, isSaving }) {
   return (
     <form
       onSubmit={onSubmit}
@@ -87,9 +93,10 @@ function TopicForm({ form, setForm, onSubmit, onCancel, isEditing }) {
       <div className="flex gap-3 mt-2">
         <button
           type="submit"
-          className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200"
+          disabled={isSaving}
+          className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50"
         >
-          {isEditing ? 'Save changes' : 'Add topic'}
+          {isSaving ? 'Saving...' : isEditing ? 'Save changes' : 'Add topic'}
         </button>
         <button
           type="button"
@@ -103,7 +110,7 @@ function TopicForm({ form, setForm, onSubmit, onCancel, isEditing }) {
   )
 }
 
-function NewPathForm({ pathName, setPathName, form, setForm, onSubmit, onCancel }) {
+function NewPathForm({ pathName, setPathName, form, setForm, onSubmit, onCancel, isSaving }) {
   return (
     <form
       onSubmit={onSubmit}
@@ -135,9 +142,10 @@ function NewPathForm({ pathName, setPathName, form, setForm, onSubmit, onCancel 
       <div className="flex gap-3 mt-2">
         <button
           type="submit"
-          className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200"
+          disabled={isSaving}
+          className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50"
         >
-          Create path
+          {isSaving ? 'Saving...' : 'Create path'}
         </button>
         <button
           type="button"
@@ -151,19 +159,50 @@ function NewPathForm({ pathName, setPathName, form, setForm, onSubmit, onCancel 
   )
 }
 
-function CustomTopicCard({ topic, isLast, onToggleComplete, onEdit, onDelete }) {
+function CustomTopicCard({
+  topic,
+  isLast,
+  isConfirmingDelete,
+  onToggleComplete,
+  onEdit,
+  onRequestDelete,
+  onConfirmDelete,
+  onCancelDelete,
+}) {
   const keyTerms = topic.key_terms
     ? topic.key_terms.split(',').map((t) => t.trim()).filter(Boolean)
     : []
 
+  const wrapperClass = isLast
+    ? 'bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-lg p-4 flex items-start gap-3'
+    : 'bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-lg p-4 mb-3 flex items-start gap-3'
+
+  if (isConfirmingDelete) {
+    return (
+      <div className={wrapperClass}>
+        <div className="flex-1 flex items-center justify-between gap-3">
+          <p className="text-sm text-gray-700 dark:text-gray-300">Delete '{topic.title}'?</p>
+          <div className="flex gap-2 shrink-0">
+            <button
+              onClick={onConfirmDelete}
+              className="bg-red-500 text-white text-xs font-medium px-3 py-1.5 rounded-md hover:bg-red-600"
+            >
+              Delete
+            </button>
+            <button
+              onClick={onCancelDelete}
+              className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs font-medium px-3 py-1.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div
-      className={
-        isLast
-          ? 'bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-lg p-4 flex items-start gap-3'
-          : 'bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-lg p-4 mb-3 flex items-start gap-3'
-      }
-    >
+    <div className={wrapperClass}>
       <button onClick={onToggleComplete} className="flex-shrink-0 mt-0.5">
         {topic.is_completed ? (
           <span className="h-5 w-5 rounded-full bg-green-500 text-white text-xs flex items-center justify-center">
@@ -225,7 +264,7 @@ function CustomTopicCard({ topic, isLast, onToggleComplete, onEdit, onDelete }) 
           <i className="ti ti-edit text-base" />
         </button>
         <button
-          onClick={onDelete}
+          onClick={onRequestDelete}
           className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 p-1.5 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
         >
           <i className="ti ti-trash text-base" />
@@ -235,15 +274,125 @@ function CustomTopicCard({ topic, isLast, onToggleComplete, onEdit, onDelete }) 
   )
 }
 
-function PathSection({
+function PathTab({
+  pathName,
+  isActive,
+  isRenaming,
+  renameValue,
+  onSelect,
+  onRenameChange,
+  onRenameSubmit,
+  onRenameCancel,
+  isMenuOpen,
+  menuMode,
+  onToggleMenu,
+  onClickRenameOption,
+  onClickDeleteOption,
+  onConfirmDeletePath,
+  onCancelDeletePath,
+}) {
+  if (isRenaming) {
+    return (
+      <div className="flex items-center gap-1.5 pl-3 pr-2 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+        <input
+          autoFocus
+          type="text"
+          value={renameValue}
+          onChange={(e) => onRenameChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') onRenameSubmit()
+            if (e.key === 'Escape') onRenameCancel()
+          }}
+          className="text-sm text-gray-900 dark:text-gray-100 bg-transparent focus:outline-none w-32"
+        />
+        <button onClick={onRenameSubmit} className="text-green-600 dark:text-green-400 p-0.5">
+          <i className="ti ti-check text-base" />
+        </button>
+        <button onClick={onRenameCancel} className="text-gray-400 dark:text-gray-500 p-0.5">
+          <i className="ti ti-x text-base" />
+        </button>
+      </div>
+    )
+  }
+
+  const pillClass = isActive
+    ? 'flex items-center rounded-md text-sm font-medium bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
+    : 'flex items-center rounded-md text-sm font-medium border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+
+  return (
+    <div className="relative group">
+      <div className={pillClass}>
+        <button type="button" onClick={onSelect} className="pl-4 pr-1.5 py-2 whitespace-nowrap">
+          {pathName}
+        </button>
+        <button
+          type="button"
+          onClick={onToggleMenu}
+          className="pr-2.5 pl-0.5 py-2 opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <i className="ti ti-dots text-sm" />
+        </button>
+      </div>
+
+      {isMenuOpen && (
+        <div className="absolute left-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden z-10">
+          {menuMode === 'confirmDelete' ? (
+            <div className="p-3">
+              <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+                Delete '{pathName}' and all its topics?
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={onConfirmDeletePath}
+                  className="flex-1 bg-red-500 text-white text-xs font-medium px-3 py-1.5 rounded-md hover:bg-red-600"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={onCancelDeletePath}
+                  className="flex-1 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs font-medium px-3 py-1.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={onClickRenameOption}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-left"
+              >
+                <i className="ti ti-edit text-base" />
+                Rename path
+              </button>
+              <button
+                onClick={onClickDeleteOption}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 text-left"
+              >
+                <i className="ti ti-trash text-base" />
+                Delete path
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function PathTopicsPanel({
   pathName,
   topics,
   activeForm,
   topicForm,
   setTopicForm,
+  isSavingTopic,
+  confirmingDeleteId,
   onAddTopic,
   onEditTopic,
-  onDeleteTopic,
+  onRequestDeleteTopic,
+  onConfirmDeleteTopic,
+  onCancelDeleteTopic,
   onToggleComplete,
   onSaveTopic,
   onCancelForm,
@@ -253,8 +402,8 @@ function PathSection({
   const isFormOpenHere = activeForm?.pathName === pathName
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-6 mb-6">
-      <div className="flex items-center justify-between">
+    <div>
+      <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{pathName}</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
@@ -269,7 +418,7 @@ function PathSection({
         </button>
       </div>
 
-      <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mt-3 mb-6">
+      <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mb-6">
         <div className="h-full bg-blue-500 rounded-full" style={{ width: `${pct}%` }} />
       </div>
 
@@ -280,6 +429,7 @@ function PathSection({
           onSubmit={onSaveTopic}
           onCancel={onCancelForm}
           isEditing={!!activeForm.editingTopicId}
+          isSaving={isSavingTopic}
         />
       )}
 
@@ -288,9 +438,12 @@ function PathSection({
           key={topic.id}
           topic={topic}
           isLast={index === topics.length - 1}
+          isConfirmingDelete={confirmingDeleteId === topic.id}
           onToggleComplete={() => onToggleComplete(topic)}
           onEdit={() => onEditTopic(topic)}
-          onDelete={() => onDeleteTopic(topic.id)}
+          onRequestDelete={() => onRequestDeleteTopic(topic.id)}
+          onConfirmDelete={() => onConfirmDeleteTopic(topic)}
+          onCancelDelete={onCancelDeleteTopic}
         />
       ))}
     </div>
@@ -303,10 +456,17 @@ function CustomPathPage() {
 
   const [topics, setTopics] = useState([])
   const [loading, setLoading] = useState(true)
+  const [selectedPathName, setSelectedPathName] = useState(null)
   const [showNewPathForm, setShowNewPathForm] = useState(false)
   const [newPathName, setNewPathName] = useState('')
   const [activeForm, setActiveForm] = useState(null)
   const [topicForm, setTopicForm] = useState(DEFAULT_TOPIC_FORM)
+  const [isSavingTopic, setIsSavingTopic] = useState(false)
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState(null)
+  const [renamingPath, setRenamingPath] = useState(null)
+  const [pathMenuOpen, setPathMenuOpen] = useState(null)
+  const [pathMenuMode, setPathMenuMode] = useState('menu')
+  const pathMenuRef = useRef(null)
 
   useEffect(() => {
     if (!user) return
@@ -319,17 +479,44 @@ function CustomPathPage() {
         .order('path_name')
         .order('sort_order')
 
-      setTopics(data ?? [])
+      const loadedTopics = data ?? []
+      setTopics(loadedTopics)
+
+      const firstPathName = [...new Set(loadedTopics.map((t) => t.path_name))].sort((a, b) =>
+        a.localeCompare(b)
+      )[0]
+      setSelectedPathName(firstPathName ?? null)
+
       setLoading(false)
     }
 
     load()
   }, [user])
 
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (pathMenuRef.current && !pathMenuRef.current.contains(e.target)) {
+        setPathMenuOpen(null)
+        setPathMenuMode('menu')
+      }
+    }
+
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [])
+
+  function selectPath(pathName) {
+    setSelectedPathName(pathName)
+    setPathMenuOpen(null)
+    setPathMenuMode('menu')
+    setConfirmingDeleteId(null)
+  }
+
   function openAddTopicForm(pathName) {
     setShowNewPathForm(false)
     setActiveForm({ pathName, editingTopicId: null })
     setTopicForm(DEFAULT_TOPIC_FORM)
+    setConfirmingDeleteId(null)
   }
 
   function openEditTopicForm(topic) {
@@ -341,6 +528,7 @@ function CustomPathPage() {
       learningOutcomes: topic.learning_outcomes ?? '',
       resourceUrl: topic.resource_url ?? '',
     })
+    setConfirmingDeleteId(null)
   }
 
   function closeTopicForm() {
@@ -353,6 +541,9 @@ function CustomPathPage() {
     setTopicForm(DEFAULT_TOPIC_FORM)
     setNewPathName('')
     setShowNewPathForm(true)
+    setPathMenuOpen(null)
+    setPathMenuMode('menu')
+    setRenamingPath(null)
   }
 
   function closeNewPathForm() {
@@ -366,6 +557,16 @@ function CustomPathPage() {
     const trimmedName = newPathName.trim()
     if (!trimmedName) return
 
+    const nameExists = topics.some(
+      (t) => t.path_name.toLowerCase() === trimmedName.toLowerCase()
+    )
+    if (nameExists) {
+      showToast('A path with that name already exists', 'error')
+      return
+    }
+
+    setIsSavingTopic(true)
+
     const { data, error } = await supabase
       .from('custom_topics')
       .insert({
@@ -373,7 +574,7 @@ function CustomPathPage() {
         title: topicForm.title,
         key_terms: topicForm.keyTerms || null,
         learning_outcomes: topicForm.learningOutcomes || null,
-        resource_url: topicForm.resourceUrl || null,
+        resource_url: normalizeResourceUrl(topicForm.resourceUrl),
         user_id: user.id,
         sort_order: 1,
         is_completed: false,
@@ -381,12 +582,15 @@ function CustomPathPage() {
       .select()
       .single()
 
+    setIsSavingTopic(false)
+
     if (error) {
       showToast('Something went wrong, please try again', 'error')
       return
     }
 
     setTopics((prev) => [...prev, data])
+    setSelectedPathName(trimmedName)
     showToast('Topic added to your path', 'success')
     closeNewPathForm()
   }
@@ -395,12 +599,14 @@ function CustomPathPage() {
     e.preventDefault()
     if (!activeForm) return
 
+    setIsSavingTopic(true)
+
     const payload = {
       path_name: activeForm.pathName,
       title: topicForm.title,
       key_terms: topicForm.keyTerms || null,
       learning_outcomes: topicForm.learningOutcomes || null,
-      resource_url: topicForm.resourceUrl || null,
+      resource_url: normalizeResourceUrl(topicForm.resourceUrl),
     }
 
     if (activeForm.editingTopicId) {
@@ -410,6 +616,8 @@ function CustomPathPage() {
         .eq('id', activeForm.editingTopicId)
         .select()
         .single()
+
+      setIsSavingTopic(false)
 
       if (error) {
         showToast('Something went wrong, please try again', 'error')
@@ -434,6 +642,8 @@ function CustomPathPage() {
         .select()
         .single()
 
+      setIsSavingTopic(false)
+
       if (error) {
         showToast('Something went wrong, please try again', 'error')
         return
@@ -446,15 +656,28 @@ function CustomPathPage() {
     closeTopicForm()
   }
 
-  async function handleDeleteTopic(topicId) {
-    const { error } = await supabase.from('custom_topics').delete().eq('id', topicId)
+  async function handleDeleteTopic(topic) {
+    const { error } = await supabase.from('custom_topics').delete().eq('id', topic.id)
 
     if (error) {
       showToast('Something went wrong, please try again', 'error')
       return
     }
 
-    setTopics((prev) => prev.filter((t) => t.id !== topicId))
+    const nextTopics = topics.filter((t) => t.id !== topic.id)
+    setTopics(nextTopics)
+    setConfirmingDeleteId(null)
+
+    if (
+      selectedPathName === topic.path_name &&
+      !nextTopics.some((t) => t.path_name === topic.path_name)
+    ) {
+      const remainingNames = [...new Set(nextTopics.map((t) => t.path_name))].sort((a, b) =>
+        a.localeCompare(b)
+      )
+      setSelectedPathName(remainingNames[0] ?? null)
+    }
+
     showToast('Topic removed', 'success')
   }
 
@@ -480,6 +703,84 @@ function CustomPathPage() {
     }
   }
 
+  function togglePathMenu(pathName) {
+    if (pathMenuOpen === pathName) {
+      setPathMenuOpen(null)
+      setPathMenuMode('menu')
+    } else {
+      setPathMenuOpen(pathName)
+      setPathMenuMode('menu')
+    }
+  }
+
+  function startRenamingPath(pathName) {
+    setPathMenuOpen(null)
+    setPathMenuMode('menu')
+    setRenamingPath({ pathName, value: pathName })
+  }
+
+  async function handleRenamePath() {
+    if (!renamingPath) return
+
+    const oldName = renamingPath.pathName
+    const newName = renamingPath.value.trim()
+
+    if (!newName || newName === oldName) {
+      setRenamingPath(null)
+      return
+    }
+
+    const { error } = await supabase
+      .from('custom_topics')
+      .update({ path_name: newName })
+      .eq('path_name', oldName)
+      .eq('user_id', user.id)
+
+    if (error) {
+      showToast('Something went wrong, please try again', 'error')
+      setRenamingPath(null)
+      return
+    }
+
+    setTopics((prev) =>
+      prev.map((t) => (t.path_name === oldName ? { ...t, path_name: newName } : t))
+    )
+
+    if (selectedPathName === oldName) {
+      setSelectedPathName(newName)
+    }
+
+    setRenamingPath(null)
+    showToast('Path renamed', 'success')
+  }
+
+  async function handleDeletePath(pathName) {
+    const { error } = await supabase
+      .from('custom_topics')
+      .delete()
+      .eq('path_name', pathName)
+      .eq('user_id', user.id)
+
+    if (error) {
+      showToast('Something went wrong, please try again', 'error')
+      return
+    }
+
+    const nextTopics = topics.filter((t) => t.path_name !== pathName)
+    setTopics(nextTopics)
+
+    if (selectedPathName === pathName) {
+      const remainingNames = [...new Set(nextTopics.map((t) => t.path_name))].sort((a, b) =>
+        a.localeCompare(b)
+      )
+      setSelectedPathName(remainingNames[0] ?? null)
+    }
+
+    setPathMenuOpen(null)
+    setPathMenuMode('menu')
+    showToast('Path deleted', 'success')
+  }
+
   if (loading) {
     return (
       <>
@@ -501,7 +802,9 @@ function CustomPathPage() {
     }
     groupedPaths[topic.path_name].push(topic)
   }
-  const pathNames = Object.keys(groupedPaths)
+  const pathNames = Object.keys(groupedPaths).sort((a, b) => a.localeCompare(b))
+  const totalCompleted = topics.filter((t) => t.is_completed).length
+  const selectedTopics = selectedPathName ? groupedPaths[selectedPathName] ?? [] : []
 
   return (
     <>
@@ -510,64 +813,121 @@ function CustomPathPage() {
         <TopBar title="My Learning Paths" />
 
         <main className="px-8 py-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                My Learning Paths
-              </h1>
-              <p className="text-gray-500 dark:text-gray-400 mt-1">
-                Create your own topics and track progress your way
-              </p>
-            </div>
-            <button
-              onClick={handleClickNewPath}
-              className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200"
-            >
-              New Path
-            </button>
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              My Learning Paths
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">
+              Create your own topics and track progress your way
+            </p>
           </div>
 
-          {showNewPathForm && (
-            <NewPathForm
-              pathName={newPathName}
-              setPathName={setNewPathName}
-              form={topicForm}
-              setForm={setTopicForm}
-              onSubmit={handleCreatePath}
-              onCancel={closeNewPathForm}
-            />
-          )}
-
-          {pathNames.length === 0 && !showNewPathForm ? (
-            <div className="text-center py-20">
-              <i className="ti ti-route text-4xl text-gray-300 dark:text-gray-700 mb-3 inline-block" />
-              <p className="text-gray-400 dark:text-gray-500 text-sm mb-4">
-                You haven't created any custom paths yet
-              </p>
-              <button
-                onClick={handleClickNewPath}
-                className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200"
-              >
-                Create your first path
-              </button>
+          {pathNames.length === 0 ? (
+            <div className="max-w-md mx-auto">
+              {showNewPathForm ? (
+                <NewPathForm
+                  pathName={newPathName}
+                  setPathName={setNewPathName}
+                  form={topicForm}
+                  setForm={setTopicForm}
+                  onSubmit={handleCreatePath}
+                  onCancel={closeNewPathForm}
+                  isSaving={isSavingTopic}
+                />
+              ) : (
+                <div className="text-center py-20">
+                  <i className="ti ti-route text-4xl text-gray-300 dark:text-gray-700 mb-3 inline-block" />
+                  <p className="text-gray-400 dark:text-gray-500 text-sm mb-4">
+                    You haven't created any custom paths yet
+                  </p>
+                  <button
+                    onClick={handleClickNewPath}
+                    className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200"
+                  >
+                    Create your first path
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
-            pathNames.map((pathName) => (
-              <PathSection
-                key={pathName}
-                pathName={pathName}
-                topics={groupedPaths[pathName]}
-                activeForm={activeForm}
-                topicForm={topicForm}
-                setTopicForm={setTopicForm}
-                onAddTopic={openAddTopicForm}
-                onEditTopic={openEditTopicForm}
-                onDeleteTopic={handleDeleteTopic}
-                onToggleComplete={handleToggleComplete}
-                onSaveTopic={handleSaveTopic}
-                onCancelForm={closeTopicForm}
-              />
-            ))
+            <>
+              <div className="flex gap-4 mb-4">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  {pathNames.length} paths
+                </span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  {topics.length} topics
+                </span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  {totalCompleted} completed
+                </span>
+              </div>
+
+              <div ref={pathMenuRef} className="flex items-center gap-2 flex-wrap mb-6">
+                {pathNames.map((pathName) => (
+                  <PathTab
+                    key={pathName}
+                    pathName={pathName}
+                    isActive={selectedPathName === pathName}
+                    isRenaming={renamingPath?.pathName === pathName}
+                    renameValue={renamingPath?.pathName === pathName ? renamingPath.value : ''}
+                    onSelect={() => selectPath(pathName)}
+                    onRenameChange={(value) => setRenamingPath({ pathName, value })}
+                    onRenameSubmit={handleRenamePath}
+                    onRenameCancel={() => setRenamingPath(null)}
+                    isMenuOpen={pathMenuOpen === pathName}
+                    menuMode={pathMenuMode}
+                    onToggleMenu={() => togglePathMenu(pathName)}
+                    onClickRenameOption={() => startRenamingPath(pathName)}
+                    onClickDeleteOption={() => setPathMenuMode('confirmDelete')}
+                    onConfirmDeletePath={() => handleDeletePath(pathName)}
+                    onCancelDeletePath={() => {
+                      setPathMenuOpen(null)
+                      setPathMenuMode('menu')
+                    }}
+                  />
+                ))}
+                <button
+                  onClick={handleClickNewPath}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium border border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  <i className="ti ti-plus text-base" />
+                  New Path
+                </button>
+              </div>
+
+              {showNewPathForm && (
+                <NewPathForm
+                  pathName={newPathName}
+                  setPathName={setNewPathName}
+                  form={topicForm}
+                  setForm={setTopicForm}
+                  onSubmit={handleCreatePath}
+                  onCancel={closeNewPathForm}
+                  isSaving={isSavingTopic}
+                />
+              )}
+
+              {selectedPathName && (
+                <PathTopicsPanel
+                  pathName={selectedPathName}
+                  topics={selectedTopics}
+                  activeForm={activeForm}
+                  topicForm={topicForm}
+                  setTopicForm={setTopicForm}
+                  isSavingTopic={isSavingTopic}
+                  confirmingDeleteId={confirmingDeleteId}
+                  onAddTopic={openAddTopicForm}
+                  onEditTopic={openEditTopicForm}
+                  onRequestDeleteTopic={setConfirmingDeleteId}
+                  onConfirmDeleteTopic={handleDeleteTopic}
+                  onCancelDeleteTopic={() => setConfirmingDeleteId(null)}
+                  onToggleComplete={handleToggleComplete}
+                  onSaveTopic={handleSaveTopic}
+                  onCancelForm={closeTopicForm}
+                />
+              )}
+            </>
           )}
         </main>
       </div>
