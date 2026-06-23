@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
@@ -24,14 +25,21 @@ function getPhaseRowBarClass(phase) {
 async function loadDashboardData(userId) {
   const sevenDaysAgo = getDaysAgoIST(7)
 
-  const [topicsRes, progressRes, tasksRes, logsRes, streaksRes, profileRes] = await Promise.all([
-    supabase.from('topics').select('*'),
-    supabase.from('user_progress').select('topic_id').eq('user_id', userId),
-    supabase.from('tasks').select('*').eq('user_id', userId).eq('is_active', true),
-    supabase.from('task_logs').select('*').eq('user_id', userId).gte('log_date', sevenDaysAgo).order('log_date'),
-    supabase.from('streaks').select('*').eq('user_id', userId),
-    supabase.from('profiles').select('*').eq('id', userId).single(),
-  ])
+  const [topicsRes, progressRes, tasksRes, logsRes, streaksRes, profileRes, customTopicsRes] =
+    await Promise.all([
+      supabase.from('topics').select('*'),
+      supabase.from('user_progress').select('topic_id').eq('user_id', userId),
+      supabase.from('tasks').select('*').eq('user_id', userId).eq('is_active', true),
+      supabase
+        .from('task_logs')
+        .select('*')
+        .eq('user_id', userId)
+        .gte('log_date', sevenDaysAgo)
+        .order('log_date'),
+      supabase.from('streaks').select('*').eq('user_id', userId),
+      supabase.from('profiles').select('*').eq('id', userId).single(),
+      supabase.from('custom_topics').select('*').eq('user_id', userId),
+    ])
 
   return {
     topics: topicsRes.data ?? [],
@@ -40,18 +48,35 @@ async function loadDashboardData(userId) {
     logs7d: logsRes.data ?? [],
     streaks: streaksRes.data ?? [],
     profile: profileRes.data ?? null,
+    customTopics: customTopicsRes.data ?? [],
   }
 }
 
 function DashboardPage() {
   const { user } = useAuth()
   const { resolvedTheme } = useTheme()
+  const navigate = useNavigate()
   const [topics, setTopics] = useState([])
   const [completedTopicIds, setCompletedTopicIds] = useState(new Set())
   const [tasks, setTasks] = useState([])
   const [logs7d, setLogs7d] = useState([])
   const [streaks, setStreaks] = useState([])
+  const [customTopics, setCustomTopics] = useState([])
   const [loading, setLoading] = useState(true)
+  const [selectedPlanView, setSelectedPlanView] = useState('genai')
+  const [planMenuOpen, setPlanMenuOpen] = useState(false)
+  const planMenuRef = useRef(null)
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (planMenuRef.current && !planMenuRef.current.contains(e.target)) {
+        setPlanMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [])
 
   useEffect(() => {
     if (!user) return
@@ -64,12 +89,14 @@ function DashboardPage() {
         setTasks(result.tasks)
         setLogs7d(result.logs7d)
         setStreaks(result.streaks)
+        setCustomTopics(result.customTopics)
       } catch {
         setTopics([])
         setCompletedTopicIds(new Set())
         setTasks([])
         setLogs7d([])
         setStreaks([])
+        setCustomTopics([])
       }
       setLoading(false)
     }
@@ -157,6 +184,24 @@ function DashboardPage() {
     .map((id) => topics.find((t) => String(t.id) === id))
     .filter(Boolean)
 
+  const customPathGroups = {}
+  for (const topic of customTopics) {
+    if (!customPathGroups[topic.path_name]) {
+      customPathGroups[topic.path_name] = []
+    }
+    customPathGroups[topic.path_name].push(topic)
+  }
+  const customPathNames = [...new Set(customTopics.map((t) => t.path_name))].sort()
+
+  const selectedCustomPathTopics =
+    selectedPlanView !== 'genai' ? customPathGroups[selectedPlanView] ?? [] : []
+  const selectedCustomCompletedCount = selectedCustomPathTopics.filter(
+    (t) => t.is_completed
+  ).length
+  const selectedCustomCompletionPct = selectedCustomPathTopics.length
+    ? Math.round((selectedCustomCompletedCount / selectedCustomPathTopics.length) * 100)
+    : 0
+
   return (
     <>
       <Sidebar />
@@ -166,8 +211,16 @@ function DashboardPage() {
           <div className="grid grid-cols-4 gap-4 mb-8">
             <StatCard
               label="Topics Completed"
-              value={`${completedCount} / ${totalTopics}`}
-              subtext={`${completionPct}% complete`}
+              value={
+                selectedPlanView === 'genai'
+                  ? `${completedCount} / ${totalTopics}`
+                  : `${selectedCustomCompletedCount} / ${selectedCustomPathTopics.length}`
+              }
+              subtext={
+                selectedPlanView === 'genai'
+                  ? `${completionPct}% complete`
+                  : `${selectedCustomCompletionPct}% complete`
+              }
               icon="ti-books"
               iconColorClass="bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400"
             />
@@ -196,46 +249,141 @@ function DashboardPage() {
 
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
-              <p className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                Learning Plan
-              </p>
+              <div ref={planMenuRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setPlanMenuOpen((prev) => !prev)}
+                  className="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900 border border-gray-900 dark:border-gray-400 rounded-lg px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  {selectedPlanView === 'genai' ? 'Gen AI Learning Plan' : selectedPlanView}
+                  <i className="ti ti-chevron-down text-base" />
+                </button>
+
+                {planMenuOpen && (
+                  <div className="absolute left-0 top-full mt-1 min-w-[220px] bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 shadow-md z-50 overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedPlanView('genai')
+                        setPlanMenuOpen(false)
+                      }}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                      <i className="ti ti-books text-blue-500" />
+                      <span className="flex-1">Gen AI Learning Plan</span>
+                      {selectedPlanView === 'genai' && (
+                        <i className="ti ti-check text-blue-500" />
+                      )}
+                    </button>
+
+                    {customPathNames.map((pathName) => (
+                      <button
+                        key={pathName}
+                        type="button"
+                        onClick={() => {
+                          setSelectedPlanView(pathName)
+                          setPlanMenuOpen(false)
+                        }}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                      >
+                        <i className="ti ti-route text-gray-400" />
+                        <span className="flex-1">{pathName}</span>
+                        {selectedPlanView === pathName && (
+                          <i className="ti ti-check text-blue-500" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <span className="bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 text-sm px-3 py-1 rounded-full">
-                {completedCount} of {totalTopics} complete
+                {selectedPlanView === 'genai'
+                  ? `${completedCount} of ${totalTopics} complete`
+                  : `${selectedCustomCompletedCount} of ${selectedCustomPathTopics.length} complete`}
               </span>
             </div>
 
-            <div>
-              {phaseStats.map((p, index) => {
-                const pct = p.total ? Math.round((p.completed / p.total) * 100) : 0
-                const isLast = index === phaseStats.length - 1
-                return (
-                  <div
-                    key={p.phase}
-                    className={
-                      isLast
-                        ? 'flex items-center gap-4 py-3'
-                        : 'flex items-center gap-4 py-3 border-b border-gray-50 dark:border-gray-800'
-                    }
-                  >
-                    <span className="text-sm font-medium w-48 flex-shrink-0 text-gray-700 dark:text-gray-300">
-                      {PHASE_NAMES[p.phase] ?? `Phase ${p.phase}`}
-                    </span>
-                    <span className="text-xs text-gray-400 dark:text-gray-500 w-20 flex-shrink-0">
-                      {p.completed}/{p.total} topics
-                    </span>
-                    <div className="flex-1 bg-gray-100 dark:bg-gray-800 h-2 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${getPhaseRowBarClass(p.phase)}`}
-                        style={{ width: `${pct}%` }}
-                      />
+            {selectedPlanView === 'genai' ? (
+              <div>
+                {phaseStats.map((p, index) => {
+                  const pct = p.total ? Math.round((p.completed / p.total) * 100) : 0
+                  const isLast = index === phaseStats.length - 1
+                  return (
+                    <div
+                      key={p.phase}
+                      className={
+                        isLast
+                          ? 'flex items-center gap-4 py-3'
+                          : 'flex items-center gap-4 py-3 border-b border-gray-50 dark:border-gray-800'
+                      }
+                    >
+                      <span className="text-sm font-medium w-48 flex-shrink-0 text-gray-700 dark:text-gray-300">
+                        {PHASE_NAMES[p.phase] ?? `Phase ${p.phase}`}
+                      </span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500 w-20 flex-shrink-0">
+                        {p.completed}/{p.total} topics
+                      </span>
+                      <div className="flex-1 bg-gray-100 dark:bg-gray-800 h-2 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${getPhaseRowBarClass(p.phase)}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300 w-10 text-right">
+                        {pct}%
+                      </span>
                     </div>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 w-10 text-right">
-                      {pct}%
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div>
+                {selectedCustomPathTopics.length === 0 ? (
+                  <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-8">
+                    No topics in this path yet
+                  </p>
+                ) : (
+                  selectedCustomPathTopics.map((topic, index) => {
+                    const pct = topic.is_completed ? 100 : 0
+                    const isLast = index === selectedCustomPathTopics.length - 1
+                    return (
+                      <div
+                        key={topic.id}
+                        className={
+                          isLast
+                            ? 'flex items-center gap-4 py-3'
+                            : 'flex items-center gap-4 py-3 border-b border-gray-50 dark:border-gray-800'
+                        }
+                      >
+                        <span className="text-sm font-medium w-48 flex-shrink-0 text-gray-700 dark:text-gray-300 truncate">
+                          {topic.title}
+                        </span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500 w-20 flex-shrink-0">
+                          {topic.is_completed ? 1 : 0}/1 topics
+                        </span>
+                        <div className="flex-1 bg-gray-100 dark:bg-gray-800 h-2 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-blue-500"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300 w-10 text-right">
+                          {pct}%
+                        </span>
+                      </div>
+                    )
+                  })
+                )}
+                <div className="flex justify-end mt-2">
+                  <button
+                    onClick={() => navigate('/custom-path')}
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    View path →
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-6 mb-6">
@@ -318,51 +466,58 @@ function DashboardPage() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-6 mb-6">
-            <p className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">
-              Phase breakdown
-            </p>
-            <div className="grid grid-cols-3 gap-6">
-              {phaseStats.map((p) => {
-                const colors = getPhaseColorClasses(p.phase)
-                const pct = p.total ? Math.round((p.completed / p.total) * 100) : 0
-                return (
-                  <div key={p.phase}>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className={`text-sm font-semibold ${colors.text}`}>
-                        {PHASE_NAMES[p.phase] ?? `Phase ${p.phase}`}
-                      </span>
-                      <span className="text-xs text-gray-400 dark:text-gray-500">
-                        {p.completed}/{p.total}
-                      </span>
+          {selectedPlanView === 'genai' && (
+            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-6 mb-6">
+              <p className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                Phase breakdown
+              </p>
+              <div className="grid grid-cols-3 gap-6">
+                {phaseStats.map((p) => {
+                  const colors = getPhaseColorClasses(p.phase)
+                  const pct = p.total ? Math.round((p.completed / p.total) * 100) : 0
+                  return (
+                    <div key={p.phase}>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className={`text-sm font-semibold ${colors.text}`}>
+                          {PHASE_NAMES[p.phase] ?? `Phase ${p.phase}`}
+                        </span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500">
+                          {p.completed}/{p.total}
+                        </span>
+                      </div>
+                      <p className={`text-4xl font-bold ${colors.text}`}>{pct}%</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">complete</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
+                        {p.mandatoryCompleted} mandatory · {p.optionalCompleted} optional
+                      </p>
+                      <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${colors.bar}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
                     </div>
-                    <p className={`text-4xl font-bold ${colors.text}`}>{pct}%</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">complete</p>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
-                      {p.mandatoryCompleted} mandatory · {p.optionalCompleted} optional
-                    </p>
-                    <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${colors.bar}`} style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-
-            {lastCompletedTopics.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
-                <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">Recently completed</p>
-                <div className="flex flex-col gap-1.5">
-                  {lastCompletedTopics.map((topic) => (
-                    <div key={topic.id} className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">{topic.title}</span>
-                    </div>
-                  ))}
-                </div>
+                  )
+                })}
               </div>
-            )}
-          </div>
+
+              {lastCompletedTopics.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">Recently completed</p>
+                  <div className="flex flex-col gap-1.5">
+                    {lastCompletedTopics.map((topic) => (
+                      <div key={topic.id} className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                          {topic.title}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </>
