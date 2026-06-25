@@ -281,6 +281,13 @@ function TaskForm({ form, setForm, editingTask, onToggleExcludedDay, onSubmit, o
       </div>
 
       {form.reminderEnabled && (
+        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
+          ⚠️ Email reminders are currently in beta. Notifications are only sent to the platform
+          admin during this period.
+        </p>
+      )}
+
+      {form.reminderEnabled && (
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Reminder time

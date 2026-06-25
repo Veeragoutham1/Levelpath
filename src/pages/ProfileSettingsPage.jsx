@@ -209,6 +209,10 @@ function ProfileSettingsPage() {
                     This is your default reminder time for new tasks. You can override it per
                     task.
                   </p>
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+                    ℹ️ Email reminders are currently in beta. Notifications are only delivered to
+                    verified accounts during this period.
+                  </p>
                 </div>
 
                 <button
