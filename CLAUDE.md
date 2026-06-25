@@ -9,7 +9,7 @@ Builder: Veera Goutham. Personal side project.
 - Auth + Database: Supabase (Postgres + RLS)
 - Charts: Recharts (v3.8.1)
 - Icons: Tabler Icons via CDN in index.html
-- Hosting: Vercel (not deployed yet)
+- Hosting: Vercel (live at levelpath-theta.vercel.app)
 - Backend: Express.js (built, runs locally, Railway deployment pending)
 - Email: Resend (sandbox verified, domain verification needed for production)
 
@@ -85,9 +85,9 @@ backend/
 ✅ Dark mode — light/dark/system toggle, auto-detects OS preference, persists to localStorage
 ✅ Backend cron jobs — midnight reset (marks missed tasks), 7PM email reminders via Resend
 ✅ Code quality — IST-safe dates, idempotent streak logic, RLS admin policies, bundle splitting, shared constants
-⏳ Backend deployment (Railway) — runs locally only, cron jobs need Railway to work 24/7
+✅ Backend deployment — Supabase Edge Functions + pg_cron (deployed, runs 24/7 free)
 ⏳ Community feed (Twitter/X style) — Phase 2
-❌ Vercel frontend deployment — final step
+✅ Vercel frontend deployment — live at levelpath-theta.vercel.app
 ❌ Custom domain / Resend domain verification — not planned
 
 ## Planned Phase 2 features (do not build yet)
@@ -130,3 +130,30 @@ Phase 3: 8 topics (6 mandatory, 2 optional) — RAG, MCP, Deployment
 - RLS admin policies use is_admin() security definer function to avoid recursive policy evaluation
 - Date handling: all frontend and backend date operations use IST-safe UTC accessor methods via src/lib/dateUtils.js
 - Bundle: DashboardPage lazy-loaded via React.lazy, splits Recharts into separate chunk (~337KB)
+
+## Session end state (June 2026)
+Everything is fully deployed and working:
+- Frontend live at https://levelpath-theta.vercel.app (Vercel, auto-deploys on git push to main)
+- Supabase Edge Functions deployed: midnight-reset and evening-reminder
+- pg_cron schedules active: job 5 (30 18 * * * = midnight IST) and job 6 (30 13 * * * = 7PM IST)
+- pg_cron calls Edge Functions via net.http_post() using service_role_key from Supabase Vault
+- Resend API key set as Supabase Edge Function secret
+- GitHub repo public: github.com/Veeragoutham1/Levelpath
+- Express backend in backend/ folder is LOCAL ONLY — used for manual curl testing, not deployed
+- Email reminders are sandbox mode — only send to veeragoutham04@gmail.com (Resend verified account)
+- All audit bugs fixed: RLS recursion, UTC/IST mismatch, streak idempotency, silent error handling
+- Dark mode complete across all pages (light/dark/system)
+- Custom learning paths complete with tab layout
+- Dashboard has plan selector dropdown for Gen AI plan + custom paths
+
+## Next session starting point
+If continuing development, pick up from Phase 2 features:
+1. Community Feed (Twitter/X style posts + likes) — highest priority
+2. Profile picture upload via Supabase Storage
+3. AI features via Gemini 1.5 Flash (Edge Functions only, never frontend)
+
+Local dev commands:
+- Frontend: cd "A:\Ganit learning website\Levelpath" && npm run dev
+- Backend (manual test only): cd "A:\Ganit learning website\Levelpath\backend" && node server.js
+- Deploy Edge Functions: supabase functions deploy <name> --project-ref lgovmtlbyapgzywpwzku
+- Deploy frontend: git push origin main (Vercel auto-deploys)
