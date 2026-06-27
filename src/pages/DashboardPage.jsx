@@ -88,7 +88,8 @@ function DashboardPage() {
         setTopics(result.topics)
         setCompletedTopicIds(new Set(result.progress.map((row) => String(row.topic_id))))
         setTasks(result.tasks)
-        setLogs7d(result.logs7d)
+        const activeTaskIds = new Set(result.tasks.map((t) => t.id))
+        setLogs7d(result.logs7d.filter((l) => activeTaskIds.has(l.task_id)))
         setStreaks(result.streaks)
         setCustomTopics(result.customTopics)
       } catch {
