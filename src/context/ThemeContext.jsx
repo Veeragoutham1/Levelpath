@@ -4,41 +4,23 @@ const ThemeContext = createContext(undefined)
 
 const STORAGE_KEY = 'levelpath-theme'
 
-function getSystemPrefersDark() {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
-}
-
 function applyResolvedTheme(resolved) {
   document.documentElement.classList.toggle('dark', resolved === 'dark')
 }
 
 function getStoredTheme() {
   const saved = localStorage.getItem(STORAGE_KEY)
-  return saved === 'light' || saved === 'dark' || saved === 'system' ? saved : 'system'
+  return saved === 'light' || saved === 'dark' ? saved : 'light'
 }
 
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(getStoredTheme)
-  const [systemPrefersDark, setSystemPrefersDark] = useState(getSystemPrefersDark)
 
-  const resolvedTheme = theme === 'system' ? (systemPrefersDark ? 'dark' : 'light') : theme
+  const resolvedTheme = theme
 
   useEffect(() => {
     applyResolvedTheme(resolvedTheme)
   }, [resolvedTheme])
-
-  useEffect(() => {
-    if (theme !== 'system') return
-
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-
-    function handleChange(e) {
-      setSystemPrefersDark(e.matches)
-    }
-
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [theme])
 
   const setTheme = useCallback((next) => {
     localStorage.setItem(STORAGE_KEY, next)

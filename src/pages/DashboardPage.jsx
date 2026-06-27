@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
@@ -56,6 +56,7 @@ function DashboardPage() {
   const { user } = useAuth()
   const { resolvedTheme } = useTheme()
   const navigate = useNavigate()
+  const location = useLocation()
   const [topics, setTopics] = useState([])
   const [completedTopicIds, setCompletedTopicIds] = useState(new Set())
   const [tasks, setTasks] = useState([])
@@ -102,7 +103,7 @@ function DashboardPage() {
     }
 
     load()
-  }, [user])
+  }, [user, location.key])
 
   if (loading) {
     return (

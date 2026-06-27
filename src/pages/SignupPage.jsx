@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../context/ToastContext'
 
@@ -11,19 +11,21 @@ const FEATURES = [
 
 function SignupPage() {
   const { showToast } = useToast()
+  const navigate = useNavigate()
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
     setLoading(true)
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { full_name: fullName } },
@@ -37,8 +39,13 @@ function SignupPage() {
       return
     }
 
-    setSuccess(true)
-    showToast('Account created! Check your email to confirm.', 'success')
+    if (data?.session) {
+      showToast('Account created! Welcome to Levelpath.', 'success')
+      navigate('/dashboard')
+    } else {
+      setSuccess(true)
+      showToast('Account created! Check your email to confirm.', 'success')
+    }
   }
 
   return (
@@ -120,14 +127,23 @@ function SignupPage() {
                 >
                   Password
                 </label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg py-2.5 px-3 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-400 focus:border-transparent"
-                />
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg py-2.5 px-3 pr-10 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-400 focus:border-transparent"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                  >
+                    <i className={`ti ${showPassword ? 'ti-eye-off' : 'ti-eye'} text-base`} />
+                  </button>
+                </div>
               </div>
 
               {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}

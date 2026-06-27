@@ -332,6 +332,7 @@ function TaskTrackerPage() {
   const [markingTaskId, setMarkingTaskId] = useState(null)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingTask, setEditingTask] = useState(null)
+  const [confirmDeleteTaskId, setConfirmDeleteTaskId] = useState(null)
   const [form, setForm] = useState(DEFAULT_FORM)
 
   const today = getTodayIST()
@@ -558,7 +559,10 @@ function TaskTrackerPage() {
       return
     }
 
+    await supabase.from('streaks').delete().eq('task_id', taskId).eq('user_id', user.id)
+
     setTasks((prev) => prev.filter((t) => t.id !== taskId))
+    setStreaks((prev) => prev.filter((s) => s.task_id !== taskId))
     showToast('Task deleted', 'success')
   }
 
@@ -727,18 +731,43 @@ function TaskTrackerPage() {
                       </span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => openEditForm(task)}
-                        className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 px-2 py-1"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteTask(task.id)}
-                        className="text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 px-2 py-1"
-                      >
-                        Delete
-                      </button>
+                      {confirmDeleteTaskId === task.id ? (
+                        <>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            Delete this task?
+                          </span>
+                          <button
+                            onClick={() => {
+                              handleDeleteTask(task.id)
+                              setConfirmDeleteTaskId(null)
+                            }}
+                            className="bg-red-500 text-white text-xs font-medium px-3 py-1.5 rounded-md hover:bg-red-600"
+                          >
+                            Confirm
+                          </button>
+                          <button
+                            onClick={() => setConfirmDeleteTaskId(null)}
+                            className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs font-medium px-3 py-1.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => openEditForm(task)}
+                            className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 px-2 py-1"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => setConfirmDeleteTaskId(task.id)}
+                            className="text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 px-2 py-1"
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}

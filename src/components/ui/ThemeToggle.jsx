@@ -3,7 +3,6 @@ import { useTheme } from '../../context/ThemeContext'
 const OPTIONS = [
   { value: 'light', icon: 'ti-sun', label: 'Light' },
   { value: 'dark', icon: 'ti-moon', label: 'Dark' },
-  { value: 'system', icon: 'ti-device-desktop', label: 'System' },
 ]
 
 function ThemeToggle() {
